@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -388,6 +389,15 @@
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
         }
 
+        .share-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
         .share-header {
             display: flex;
             align-items: center;
@@ -426,6 +436,26 @@
             border-radius: 10px;
             font-size: 0.9rem;
             font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .share-qrcode {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--accent-secondary);
+        }
+
+        .share-qrcode img {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+        }
+
+        .share-qrcode-tip {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
         }
 
         .share-footer {
@@ -645,6 +675,7 @@
                 <p class="ending-stats">最终好感度: <span id="final-favorability">0</span></p>
                 
                 <div class="share-card" id="share-card">
+                    <div class="share-title">🎭 抽象相亲模拟器</div>
                     <div class="share-header">
                         <span class="share-avatar" id="share-avatar">😐</span>
                         <span class="share-name" id="share-name">对方</span>
@@ -652,6 +683,10 @@
                     <p class="share-ending" id="share-ending">结局</p>
                     <p class="share-desc" id="share-desc">描述</p>
                     <div class="share-tagline" id="share-tagline">这次的相亲居然...</div>
+                    <div class="share-qrcode">
+                        <img id="share-qrcode-img" src="" alt="扫码继续">
+                        <p class="share-qrcode-tip">扫码开始你的抽象相亲</p>
+                    </div>
                 </div>
                 
                 <div class="btn-group">
@@ -706,9 +741,9 @@
                 intro: "我是做区块链的，圈里人都叫我'陈总'。目前手上管着几个亿的盘子，保时捷刚换了一辆新的。我不喜欢太物质的女生，但你得懂我的事业。跟我在一起，以后你就是老板娘。对了，方便的话可以先借我两万块周转一下吗？很快还你。",
                 opening: "你们约在星巴克见面。他迟到15分钟，进门时故意晃了晃手里的保时捷钥匙（可能是借的），然后坐下来第一句话就是：'我刚开完一个亿的会。'",
                 endings: {
-                    high: { title: "双向奔赴的杀猪盘", desc: "他觉得你是真命天女，已经把你的存款问了个遍。你们已经约好明天去酒店...啊不，去考察区块链项目。" },
-                    medium: { title: "礼貌性删除", desc: "他说你很有意思，但家里介绍的相亲对象催着要见面，先走一步。" },
-                    low: { title: "你成功把他气走了", desc: "你的一系列灵魂拷问让他意识到自己水平不够，他哭着跑出了咖啡馆，边跑边说'这届客户太难带了'。" }
+                    high: { title: '糖衣炮弹', desc: '你对他礼貌客气，他觉得你是个好骗的目标。你们加了微信，他开始每天给你发早安晚安和投资项目。你渐渐被他的"真诚"打动，投了5000块试水。第一个月他真的返了你1000，你兴奋地又投了5万。然后他消失了，微信不回，电话停机。你去报警，警察说："又是这个陈总，你是第18个了。"你蹲在派出所门口，哭都哭不出来。' },
+                    medium: { title: '相忘于江湖', desc: '你们礼貌地告别，他走出咖啡店时回头看了你一眼，欲言又止。你看到他骑着共享单车离开，车筐里放着他那叠"商业计划书"。第二天你发现他已经把你删了，大概是不想让你看到他的落魄。你笑了笑，也删了他。后来你在另一家咖啡店偶然瞥见他，他正对着新来的女孩说着同样的话："我刚开完一个亿的会……"' },
+                    low: { title: '反杀猪盘', desc: '你的一番话让他陷入了沉思。他坐在那里久久没有离开，咖啡凉了也没察觉。一周后，你收到一条微信，是他发来的："我想了很久，你说得对。我把所有币都卖了，找了个正经工作。谢谢你骂醒我。"你点开他的朋友圈，发现保时捷方向盘、茶室照片都删了，只剩一张普通的工牌照。你们偶尔会聊几句，他再也没有提过"一个亿的项目"。' }
                 },
                 dialogues: [
                     { them: "我刚开完一个亿的会，累死了。不过为了见你，值了。", options: [
@@ -1472,6 +1507,8 @@
             document.getElementById('share-ending').textContent = ending.title;
             document.getElementById('share-desc').textContent = ending.desc;
             document.getElementById('share-tagline').textContent = SHARE_TAGS[Math.floor(Math.random() * SHARE_TAGS.length)];
+            
+            document.getElementById('share-qrcode-img').src = 'qrcode.png';
 
             saveToHistory(ending.title);
             showScreen('ending-screen');
@@ -1494,6 +1531,33 @@
 
         function copyShareCard() {
             const card = document.getElementById('share-card');
+            
+            showToast('正在生成图片...');
+            
+            html2canvas(card, {
+                backgroundColor: '#16213e',
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `相亲模拟器_${currentCharacter.name}_${Date.now()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast('图片已保存，快去分享吧！');
+                }, 'image/png');
+            }).catch(err => {
+                console.error(err);
+                copyTextOnly();
+            });
+        }
+
+        function copyTextOnly() {
             const text = `
 《相亲模拟器》
 ${currentCharacter.avatar} ${currentCharacter.name}
@@ -1504,9 +1568,19 @@ ${document.getElementById('share-tagline').textContent}
 扫码开始你的抽象相亲
             `.trim();
             
-            navigator.clipboard.writeText(text).then(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
                 showToast('复制成功！快去分享给闺蜜吧～');
-            });
+            } catch (err) {
+                showToast('复制失败，请手动复制');
+            }
+            document.body.removeChild(textarea);
         }
 
         function showToast(message) {
