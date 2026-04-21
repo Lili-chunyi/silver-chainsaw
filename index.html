@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>相亲模拟器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-elevated: #1f2b47;
+            --accent-primary: #e94560;
+            --accent-secondary: #0f3460;
+            --accent-option: #533483;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b7280;
+            --positive: #4ade80;
+            --negative: #f87171;
+            --warning: #fbbf24;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, #0f0f1a 100%);
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            min-height: 100vh;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3rem;
+            text-align: center;
+            margin-top: 60px;
+            background: linear-gradient(135deg, var(--accent-primary), #ff8a9b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(233, 69, 96, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin: 20px 0 40px;
+            min-height: 30px;
+            font-style: italic;
+        }
+
+        .main-btn {
+            background: linear-gradient(135deg, var(--accent-primary), #ff6b8a);
+            border: none;
+            color: white;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(233, 69, 96, 0.4);
+            display: block;
+            margin: 20px auto;
+        }
+
+        .main-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(233, 69, 96, 0.5);
+        }
+
+        .main-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .stats {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: auto;
+            padding-bottom: 20px;
+        }
+
+        .history-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--accent-secondary);
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .history-btn:hover {
+            background: var(--accent-secondary);
+            color: var(--text-primary);
+        }
+
+        .character-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .character-avatar {
+            font-size: 5rem;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .character-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .character-tag {
+            color: var(--accent-primary);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        .intro-btn {
+            background: var(--accent-secondary);
+            border: none;
+            color: var(--text-primary);
+            padding: 14px 28px;
+            font-size: 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .intro-btn:hover {
+            background: #1a4a7a;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 70vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .intro-text {
+            line-height: 1.8;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .chat-header {
+            background: var(--bg-card);
+            padding: 15px 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-avatar {
+            font-size: 2.2rem;
+        }
+
+        .chat-info {
+            flex: 1;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .favorability {
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .favorability.positive {
+            color: var(--positive);
+        }
+
+        .favorability.negative {
+            color: var(--negative);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .favorability.changed {
+            animation: pulse 0.3s ease;
+        }
+
+        .chat-history {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 50vh;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.system {
+            align-self: center;
+            background: transparent;
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .message.them {
+            align-self: flex-start;
+            background: var(--accent-secondary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.you {
+            align-self: flex-end;
+            background: var(--accent-option);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: var(--bg-elevated);
+            border: 2px solid var(--accent-option);
+            color: var(--text-primary);
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background: var(--accent-option);
+            transform: translateX(5px);
+        }
+
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        .ending-screen {
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        .ending-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--accent-primary);
+        }
+
+        .ending-desc {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .ending-stats {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+        }
+
+        .share-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-elevated));
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 350px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .share-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--accent-secondary);
+        }
+
+        .share-avatar {
+            font-size: 2.5rem;
+        }
+
+        .share-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .share-ending {
+            color: var(--accent-primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .share-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .share-tagline {
+            background: var(--accent-primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .share-footer {
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .secondary-btn {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-secondary);
+            color: var(--text-primary);
+            padding: 14px 28px;
+            font-size: 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .secondary-btn:hover {
+            background: var(--accent-secondary);
+            transform: translateY(-2px);
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .history-item:hover {
+            background: var(--bg-elevated);
+            transform: translateX(5px);
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .history-favorability {
+            font-weight: 700;
+        }
+
+        .history-ending {
+            font-size: 0.9rem;
+            color: var(--accent-primary);
+        }
+
+        .back-btn {
+            background: var(--accent-secondary);
+            border: none;
+            color: var(--text-primary);
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #1a4a7a;
+        }
+
+        .screen-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--accent-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+        }
+
+        .detail-header {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .detail-avatar {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .detail-info {
+            margin-bottom: 15px;
+        }
+
+        .detail-ending {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .detail-chat {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 15px;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--bg-card);
+            border-radius: 2px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-option));
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="toast" id="toast"></div>
+
+        <div class="screen active" id="start-screen">
+            <button class="history-btn" onclick="showHistoryList()">📜 历史记录</button>
+            <h1 class="title">相亲模拟器</h1>
+            <p class="subtitle" id="subtitle"></p>
+            <button class="main-btn" onclick="startGame()">开始相亲</button>
+            <p class="stats" id="stats">今日已有 <span id="people-count">0</span> 人成功被拉黑</p>
+        </div>
+
+        <div class="screen" id="match-screen">
+            <div class="character-card">
+                <div class="character-avatar" id="character-avatar">😐</div>
+                <h2 class="character-name" id="character-name">加载中...</h2>
+                <p class="character-tag" id="character-tag">标签</p>
+                <button class="intro-btn" onclick="showIntro()">点击查看对方的自我介绍</button>
+            </div>
+            <button class="main-btn" id="start-chat-btn" onclick="startChat()">开始对话</button>
+            <button class="secondary-btn" onclick="rerollCharacter()">换一个</button>
+        </div>
+
+        <div class="modal" id="intro-modal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeModal()">×</button>
+                <p class="intro-text" id="intro-text"></p>
+            </div>
+        </div>
+
+        <div class="screen" id="chat-screen">
+            <div class="chat-header">
+                <span class="chat-avatar" id="chat-avatar">😐</span>
+                <div class="chat-info">
+                    <div class="chat-name" id="chat-name">对方</div>
+                    <div class="favorability" id="favorability">好感度: 0</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="chat-history" id="chat-history"></div>
+            <div class="options" id="options"></div>
+        </div>
+
+        <div class="screen" id="ending-screen">
+            <div class="ending-screen">
+                <h2 class="ending-title" id="ending-title">结局名称</h2>
+                <p class="ending-desc" id="ending-desc"></p>
+                <p class="ending-stats">最终好感度: <span id="final-favorability">0</span></p>
+                
+                <div class="share-card" id="share-card">
+                    <div class="share-header">
+                        <span class="share-avatar" id="share-avatar">😐</span>
+                        <span class="share-name" id="share-name">对方</span>
+                    </div>
+                    <p class="share-ending" id="share-ending">结局</p>
+                    <p class="share-desc" id="share-desc">描述</p>
+                    <div class="share-tagline" id="share-tagline">这次的相亲居然...</div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="main-btn" onclick="copyShareCard()">📋 复制分享</button>
+                    <button class="secondary-btn" onclick="restartGame()">再相一次</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen" id="history-list-screen">
+            <button class="back-btn" onclick="goBack()">← 返回</button>
+            <h2 class="screen-title">相亲历史</h2>
+            <div class="history-list" id="history-list"></div>
+        </div>
+
+        <div class="screen" id="history-detail-screen">
+            <button class="back-btn" onclick="showHistoryList()">← 返回</button>
+            <h2 class="screen-title">相亲详情</h2>
+            <div class="detail-header" id="detail-header"></div>
+            <div class="detail-chat" id="detail-chat"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUBTITLES = [
+            "今天你相了吗？",
+            "对方正在输入… 你的葬礼致辞",
+            "本游戏已获国家反诈中心友情提示",
+            "建议在闺蜜陪同下游玩",
+            "每局都会有一个正常人受伤",
+            "你的下一个对象，何必是个人",
+            "相亲市场的最后一根救命稻草"
+        ];
+
+        const SHARE_TAGS = [
+            "快逃！！！🆘",
+            "建议下载国家反诈中心APP",
+            "这人现在还在给我发消息",
+            "我的母单历史刷新了",
+            "相亲PTSD已触发",
+            "月老：这单我不管了",
+            "丘比特：抱歉射歪了"
+        ];
+
+        const CHARACTERS = [
+            {
+                id: 1,
+                name: "昵称：币圈陈总",
+                tag: "币圈大佬，只差你一个",
+                avatar: "🤑",
+                initialFavorability: 40,
+                intro: "我是做区块链的，圈里人都叫我'陈总'。目前手上管着几个亿的盘子，保时捷刚换了一辆新的。我不喜欢太物质的女生，但你得懂我的事业。跟我在一起，以后你就是老板娘。对了，方便的话可以先借我两万块周转一下吗？很快还你。",
+                opening: "你们约在星巴克见面。他迟到15分钟，进门时故意晃了晃手里的保时捷钥匙（可能是借的），然后坐下来第一句话就是：'我刚开完一个亿的会。'",
+                endings: {
+                    high: { title: "双向奔赴的杀猪盘", desc: "他觉得你是真命天女，已经把你的存款问了个遍。你们已经约好明天去酒店...啊不，去考察区块链项目。" },
+                    medium: { title: "礼貌性删除", desc: "他说你很有意思，但家里介绍的相亲对象催着要见面，先走一步。" },
+                    low: { title: "你成功把他气走了", desc: "你的一系列灵魂拷问让他意识到自己水平不够，他哭着跑出了咖啡馆，边跑边说'这届客户太难带了'。" }
+                },
+                dialogues: [
+                    { them: "我刚开完一个亿的会，累死了。不过为了见你，值了。", options: [
+                        { text: "辛苦了，喝口咖啡歇歇吧。", feedback: "他端起咖啡杯，故意用pinky翘起的小拇指显示优雅，喝了一口后皱了皱眉：\"这咖啡豆不行，我在迪拜喝的都是牙买加蓝山。\"然后他放下杯子，翘起二郎腿，用一种\"你赚到了\"的眼神看着你。", favor: 15 },
+                        { text: "一个亿？津巴布韦币吗？那够买两瓶矿泉水。", feedback: "他脸色一僵，嘴角抽动了两下，强笑：\"小妹妹不懂，我们这个圈子……算了。\"他低头搅动咖啡，勺子碰得杯壁叮当响，小声嘀咕：\"现在的小姑娘真不好骗……不是，真不好聊。\"", favor: -10 },
+                        { text: "你开的是'一个亿的吹牛会'吧？", feedback: "他差点被咖啡呛到，咳嗽了两声，用手帕擦了擦嘴。他环顾四周，压低声音：\"你说话注意点，我助理就在旁边桌。\"你扭头一看，旁边只有一个在刷抖音的大叔。他脸红了，拿起手机假装看消息。", favor: -25 }
+                    ]},
+                    { them: "我在迪拜有个项目，下个月带你去玩？住帆船酒店。", options: [
+                        { text: "听起来不错，但你先忙工作吧。", feedback: "他松了口气，身体往后一靠，双手交叉放在肚子上：\"工作再忙也得陪你啊。等我这个项目交割完，我包机带你飞。\"他说这话时眼神飘忽，手指无意识地敲着桌面。", favor: 15 },
+                        { text: "帆船酒店？我听说那里服务生都会中文。", feedback: "他得意地扬起下巴：\"那当然，我在那边有面子。上次我去，经理亲自出来迎接。\"你追问：\"你上次什么时候去的？\"他顿了顿：\"……疫情前。\"然后迅速转移话题。", favor: -10 },
+                        { text: "你是不是对每个相亲对象都这么说？", feedback: "他愣住了，嘴张了张又闭上。他拿起手机划了两下，又放下，耳朵有点红：\"你……你是第一个。真的。\"他的手机屏幕亮了一下，你瞥见微信置顶对话框写着\"李姐，下周见面\"。", favor: -20 }
+                    ]},
+                    { them: "你做我女朋友的话，我可以带你进我的投资群，年化300%。", options: [
+                        { text: "我考虑一下，但我不太懂投资。", feedback: "他立刻来了精神，身体前倾，开始滔滔不绝：\"不懂没关系，我教你！区块链、元宇宙、Web3.0，这些都是未来。\"他说得唾沫横飞，旁边的顾客都扭头看你们。你注意到他袖口有点磨白了。", favor: 15 },
+                        { text: "300%？你怎么还在星巴克相亲？", feedback: "他尴尬地搅了搅咖啡，勺子碰壁发出刺耳的声音。\"我这是……低调。真正的有钱人都很朴素，你看巴菲特。\"他指了指自己的衣服，\"我这衬衫是定制的。\"但你看到领口标签上写着\"299元三件\"。", favor: -10 },
+                        { text: "你的投资群是不是叫'韭菜收割机'？", feedback: "他急了，声音提高了几度：\"你懂什么！我群里都是上市公司高管！\"他掏出手机想给你看，又犹豫了，最后只亮了一下群名\"财富自由之路\"，群里只有20个人，最新一条消息是\"@所有人 今天拉新奖励双倍\"。", favor: -20 }
+                    ]},
+                    { them: "你相信命运吗？我觉得我们很有缘分。", options: [
+                        { text: "缘分需要时间验证。", feedback: "他点了点头，眼神里闪过一丝失望，但很快又堆起笑：\"对，多了解了解。你看我们星座也很合，我是狮子座，你是？\"你还没回答，他接着说：\"我猜你是白羊，因为白羊配狮子。\"其实你根本不是白羊。", favor: 15 },
+                        { text: "相信啊，我算命的说我今天会遇到一个骗子。", feedback: "他嘴角抽搐了一下，干笑了两声：\"哈哈，你真幽默。骗什么？骗感情吗？\"他摸了摸自己的脸，\"我这张脸还需要骗？\"然后他突然严肃起来：\"你不会是反诈APP派来的吧？\"", favor: -20 },
+                        { text: "我们的缘分就像比特币，来得快去得也快。", feedback: "他无语地叹了口气，端起咖啡杯一饮而尽，然后重重放下。\"你这话说的，比特币现在又涨了！缘分怎么会跌？\"他试图握住你的手，你迅速躲开，他抓了个空，尴尬地缩回去。", favor: -15 }
+                    ]},
+                    { them: "我朋友圈那张保时捷方向盘，你看到了吗？那是我的车。", options: [
+                        { text: "看到了，挺好看的。", feedback: "他满意地笑了，翘起二郎腿，抖着脚：\"那是我上个月刚提的，落地300万。改天带你兜风。\"你问：\"那你怎么来的？\"他指了指窗外：\"今天限行，我打车来的。\"窗外明明停着一排车。", favor: 15 },
+                        { text: "我还看到你上一篇朋友圈是共享单车月卡打折。", feedback: "他脸色微变，小声辩解：\"那是……那是我助理的账号。我偶尔也要体验生活，低碳环保嘛。\"他擦了擦额头的汗，\"现在有钱人都讲究环保，你不懂。\"", favor: -20 },
+                        { text: "方向盘是租的吧？我认识那家租车行。", feedback: "他恼羞成怒，拍了一下桌子：\"你胡说！我有行驶证！\"他掏出手机翻相册，翻了几分钟也没找到，最后说：\"照片太多了，回头找给你。\"然后他低头猛喝咖啡，不再看你。", favor: -25 }
+                    ]},
+                    { them: "我最近在做一个大项目，上市后我就是亿万富翁。", options: [
+                        { text: "祝你成功。", feedback: "他兴奋地拍了拍桌子，引来旁边顾客侧目。\"谢谢！到时候我请你吃大餐，米其林三星！\"他比了个\"3\"的手势，\"不对，五星！米其林五星！\"你纠正他米其林最高三星，他愣了愣：\"那就是六星！\"", favor: 30 },
+                        { text: "上市之前，你能不能先把这杯咖啡的20块付了？", feedback: "他愣了一下，然后默默掏出手机扫码付了款，但表情很难看。\"小钱，我平时都不带现金的。\"他看了看自己的钱包，里面只有几张皱巴巴的零钱和一张过期的超市会员卡。", favor: -15 },
+                        { text: "你的项目不会是传销吧？", feedback: "他急了，声音都变了调：\"你才传销！我们那是正经的……嗯，社区电商。\"你追问：\"那你们卖什么？\"他支吾：\"卖……梦想。不对，卖健康产品。\"他从包里掏出一瓶保健品，\"你要不要试试？原价998，今天给你内部价98。\"", favor: -25 }
+                    ]},
+                    { them: "我觉得你是个很有潜力的女孩，跟着我，以后吃香的喝辣的。", options: [
+                        { text: "谢谢，但我习惯靠自己。", feedback: "他有点失望，靠在椅背上，手指敲着桌面。\"独立女性好，我就喜欢独立的。但女人太强了也不好，容易单身。\"他说这话时眼神飘向窗外，仿佛在回忆什么。", favor: 10 },
+                        { text: "跟着你？那需要一起跟你拉人头吗？", feedback: "他有些生气，脸涨得通红：\"你……你怎么说话的？我可是要当亿万富翁的人！\"他站起来，又坐下，深呼吸了一下，\"算了，我不跟你一般见识。你错过了改变命运的机会。\"", favor: -10 },
+                        { text: "潜力？我最大的潜力就是拉黑骗子的速度。", feedback: "他慌了，下意识地抓住你的手腕，又马上松开。\"别拉黑！我……我真的不是骗子。你看我真诚的眼神。\"他瞪大眼睛看着你，眼白有点黄，黑眼圈很重。你差点笑出来。", favor: -25 }
+                    ]},
+                    { them: "其实我对你是真心的，和钱没关系。", options: [
+                        { text: "真心很重要，但我们还需要更多了解。", feedback: "他点了点头，表情认真了一些。\"行，那你想了解什么？我知无不言。\"你问：\"那你上次恋爱是什么时候？\"他想了想：\"……大学。快十年了。\"他低下头，似乎有点伤感。", favor: 10 },
+                        { text: "真心？那你把手机给我看看，我就信。", feedback: "他护住手机，像护住命根子。\"不行，里面有公司机密。\"你瞥见他手机屏幕上有个理财APP推送：\"您的借款已逾期\"。他迅速划掉，装作没看见。", favor: -15 },
+                        { text: "真心多少钱一斤？我先买二两。", feedback: "他叹了口气，揉了揉太阳穴。\"你怎么这么物质？我说的是感情。感情能拿钱衡量吗？\"你反问：\"那你为什么一直谈钱？\"他哑口无言。", favor: -10 }
+                    ]},
+                    { them: "等我的项目成了，我给你买爱马仕。", options: [
+                        { text: "那我先许愿了。", feedback: "他高兴地搓了搓手，\"好，一言为定！到时候我给你买两个，一个背一个扔。\"他兴奋地比划着，不小心打翻了咖啡杯，弄脏了袖子。他手忙脚乱地擦着，嘴里嘟囔：\"没事没事，旧的不去新的不来。\"", favor: 10 },
+                        { text: "不用等，你现在给我买个爱马仕的橡皮擦就行。", feedback: "他掏出手机搜了半天，皱眉道：\"爱马仕不出橡皮擦，有钥匙扣，要不？\"你摇头。他急了：\"那……那我给你买个迪奥的口红？淘宝有活动，99包邮。\"", favor: -10 },
+                        { text: "别画饼了，我家里已经有很多饼了，都快发霉了。", feedback: "他涨红了脸，脖子上的青筋都鼓起来了。\"你……你这是侮辱人！我不是画饼，我是真的有项目！\"他从包里拿出一叠文件，摔在桌上，\"你看，这是商业计划书！\"你翻了翻，封面写着\"XX项目商业计划书（第18版）\"。", favor: -20 }
+                    ]},
+                    { them: "我觉得我们很合适，加个微信吧。", options: [
+                        { text: "可以，先聊聊看。", feedback: "他立刻掏出手机，打开二维码，双手递过来。\"你扫我，我通过快。\"你扫了之后，他的微信名叫\"币圈陈总（项目合作请私）\"，头像是一辆跑车（网图）。他通过后立刻发来一条消息：\"你好，很高兴认识你 🌹\"", favor: 10 },
+                        { text: "可以，但先转2000块保证金。", feedback: "他骂了一句：\"你才是骗子！\"然后意识到失态，咳嗽两声，\"我是说……这种要求不礼貌。我们是相亲，不是交易。\"他把手机放回口袋，脸色铁青。", favor: -20 },
+                        { text: "不加，我兜里钱有用。", feedback: "他起身要走，但又停住，从口袋里掏出一张皱巴巴的名片放在桌上。\"这是我的名片，你……你改变主意了可以找我。\"名片上印着\"XX区块链集团 创始人 陈总\"，电话是空号。他头也不回地走了，走到门口还撞了一下玻璃门。", favor: -10 }
+                    ]}
+                ]
+            },
+            {
+                id: 2,
+                name: "昵称：等待你的我",
+                tag: "只是一个普普通通的优质青年",
+                avatar: "😐",
+                initialFavorability: 40,
+                intro: "我今年35岁，在一家大型企业做管理（月薪8k）。很多人第一眼看到我，都说我像吴彦祖。我对另一半的要求不高，95后，本科以上，身高165+，父母最好有退休金。我不接受彩礼，那是陋习。上一段感情？我没有前任，因为我太优秀了，一般人配不上我。",
+                opening: "他比约定时间早到了半小时，坐在位置上反复整理自己的头发。看到你走过来，他微微皱眉，小声嘀咕了一句：'比照片差一点，但还行吧。'",
+                endings: {
+                    high: { title: "官宣", desc: "你对他礼貌客气，他觉得你已经被他的魅力征服。当场掏出手机拍了一张你们的合影，发到朋友圈，配文：'终于等到你还好我没放弃。'然后他群发了50条语音给所有亲朋好友：'我脱单了！我女朋友特别漂亮！'第二天，他发来一份《恋爱协议书》，第一条写着'女方必须每天夸男方三次'。你回复了一个问号，他说：'你害羞什么，我们都在一起了。'你拉黑了他，他用七个不同的小号加你，验证消息全是：'你是不是不好意思了？我懂。'" },
+                    medium: { title: "礼貌再见", desc: "他送你到咖啡店门口，从口袋里掏出一张皱巴巴的纸巾递给你，说：'你是个好女孩，但我们可能不太合适。'你接过纸巾，擦了擦手，说'你也挺好的，祝你找到合适的'。你们各自转身，走了几步，你回头看他正对着手机发语音：'兄弟，我跟你说，今天那个女的条件不行，配不上我。'" },
+                    low: { title: "互删", desc: "回到家，你打开微信，发现他发来一条58秒的语音。你没点开，直接删除了好友。过了一会儿，他又用另一个号加你，验证消息写着：'你是不是手滑了？再给我一次机会。'你拉黑了他。从此，他每隔几天就换个号加你，最后你换了手机号。" }
+                },
+                dialogues: [
+                    { them: "你比照片胖了一点点，但我不是外貌协会，我可以接受。", options: [
+                        { text: "谢谢你的诚实，不过我觉得自己刚刚好。", feedback: "他愣了一下，上下打量你，好像在重新评估。\"嗯……其实也还好。我这个人就是太直了，喜欢说实话。\"他拿起咖啡杯，翘起小拇指喝了一口，然后故意把杯子转了个方向，露出自己侧脸，大概觉得这个角度更帅。", favor: 10 },
+                        { text: "你比照片矮了10厘米，我也不是身高协会。", feedback: "他猛地站起来，椅子向后滑了半米，引来旁边人侧目。\"我哪有矮？我穿鞋175！\"他踮了踮脚，又立刻放下，脸涨得通红。\"你……你是不是对身高有误解？现在女生怎么都这么肤浅！\"他坐下时故意把椅子往前拉，发出刺耳的摩擦声。", favor: -15 },
+                        { text: "你眼瞎吧？建议挂个眼科。", feedback: "他张了张嘴，半天没说出话。最后他拿起手机假装看消息，但屏幕是黑的。过了十几秒，他小声嘀咕：\"我好心好意夸你，你骂人？素质真差。\"然后他飞快地瞥了你一眼，又低下头，耳朵根都红了。", favor: -25 }
+                    ]},
+                    { them: "我月薪8000，但我觉得我值8万。只是老板不识货。", options: [
+                        { text: "那你加油，争取让老板识货。", feedback: "他挺了挺胸，用手指弹了弹衬衫上的灰（其实没有灰）。\"迟早的事。我跟你说，我们公司那个总监，能力不如我，就是会拍马屁。\"他喝了口咖啡，用力放下杯子，\"我要是走了，他们得哭。\"", favor: 5 },
+                        { text: "为什么不换个工作？是老板拿刀架你脖子了吗？", feedback: "他皱眉，手指敲着桌面，节奏越来越快。\"大环境不好，你懂什么？现在外面找工作多难。\"他顿了顿，声音低了一些，\"而且……我老板说了，明年给我升职。再等等。\"他的眼神飘向窗外，手指敲桌子的节奏乱了。", favor: -10 },
+                        { text: "你值8万？先把你花呗还了。", feedback: "他慌忙把手机扣在桌上，屏幕朝下，动作太大差点把咖啡杯打翻。\"谁……谁花呗？我用花呗怎么了？现在年轻人都用花呗，说明我有信用。\"他擦了擦额头的汗，\"你查我？你凭什么查我？\"", favor: -20 }
+                    ]},
+                    { them: "我对另一半要求不高，95后，本科，165以上，父母有退休金。", options: [
+                        { text: "你的要求挺具体的，我听听你的条件？", feedback: "他立刻坐直，清了清嗓子。\"我，35岁，大公司中层管理，年薪……反正不低。身高175（他看了你一眼，略微抬高了数字），不抽烟不喝酒，无不良嗜好。\"他边说边用手指比划，\"像我这种条件的，在相亲市场是顶配。\"", favor: 5 },
+                        { text: "你的条件呢？35岁，月薪8000，和父母住，存款3万？", feedback: "他皱眉，脸色变了好几变。\"你……你怎么知道的？谁告诉你的？\"他警惕地看着你，\"你是不是调查我？我跟你说，那是暂时的。我爸妈的房以后都是我的。\"他端起咖啡杯，发现已经喝完了，又重重放下。", favor: -15 },
+                        { text: "要求不高你怎么还单身35年？", feedback: "他挺起胸，下巴微抬，一副骄傲的样子。\"我是宁缺毋滥！之前追我的女生太多了，我都看不上。她们不是学历低，就是家庭条件不好。\"他数着手指，\"有个月薪三千的，还想让我养她，做梦。\"", favor: -20 }
+                    ]},
+                    { them: "我觉得你性格挺好，就是太直接了。", options: [
+                        { text: "直接一点不浪费彼此时间，你觉得呢？", feedback: "他想了想，点头。\"也是，我也喜欢直接。不过女生太直接容易嫁不出去。\"他说完又觉得不对，赶紧补充，\"我不是说你啊，我是说有些女生。\"他尴尬地笑了笑，拿起餐巾纸折来折去。", favor: 10 },
+                        { text: "直接不好吗？难道像你一样，明明普通还说自己优秀？", feedback: "他涨红了脸，脖子上的青筋都鼓起来了。\"我哪里普通了？你知不知道，我上学的时候是班草！工作以后也是优秀员工！\"他掏出手机想给你看照片，翻了半天没找到，最后锁屏了。", favor: -20 },
+                        { text: "你配不上我，再见。", feedback: "他愣住了，嘴张着，像被定住一样。过了几秒，他拿起包，但又放下。\"你……你太草率了！你会后悔的！\"他站起来，椅子向后倒，他又慌忙扶住。最后他拎着包，头也不回地走了，走到门口还回头看了一眼，然后撞上了推门进来的顾客。", favor: -25 }
+                    ]},
+                    { them: "我觉得彩礼就是陋习，真正的爱情不应该谈钱。", options: [
+                        { text: "每家习俗不同，可以商量。", feedback: "他松了口气，身体往后靠，双手交叉放在脑后。\"你挺开明的。我就喜欢你这种通情达理的。\"他翘起二郎腿，\"以后结婚，我家出房子，你家出装修，合理吧？\"你还没回答，他已经开始规划了。", favor: 5 },
+                        { text: "那嫁妆你准备出多少？没个100万我可不同意。", feedback: "他瞪大了眼，差点从椅子上弹起来。\"100万？你……你这是卖女儿吗？\"他压低声音，左右看了看，\"我跟你说，我身边朋友结婚，女方都倒贴。你不要太过分。\"他气鼓鼓地抱着胳膊。", favor: -15 },
+                        { text: "你以为你是谁？不要彩礼你配吗？", feedback: "他怒了，拍了一下桌子，咖啡杯晃了晃。\"你……你怎么说话呢？我条件这么好，多少女生倒贴我都不要！\"他站起来又坐下，呼吸急促，\"你不要就算了，有的是人要。\"他拿起手机，假装有人给他发消息，其实屏幕是黑的。", favor: -25 }
+                    ]},
+                    { them: "我暗恋高中同桌12年，但她结婚了。我觉得她没眼光。", options: [
+                        { text: "暗恋这么久，你一定很专一。", feedback: "他得意地扬起下巴。\"那当然，我这人就是长情。现在的女生都不懂，我这种优质男人上哪找？\"他摸了摸下巴，\"她老公就是个普通上班族，没我帅，没我有前途。她迟早会后悔。\"", favor: 5 },
+                        { text: "人家没眼光？那你现在去追她啊，看她要不要你。", feedback: "他叹气，肩膀耷拉下来。\"她已经结婚了，我不能破坏别人家庭。\"他搓了搓手指，\"而且……她生完孩子胖了好多，我也看不上她了。\"他说这话时眼神闪烁，明显在撒谎。", favor: -10 },
+                        { text: "12年？你是跟踪狂吧？", feedback: "他急了，声音都变了调。\"谁跟踪狂？我那是默默守护！你不懂，这叫痴情。\"他抓起咖啡杯又放下，\"现在的女生，动不动就说跟踪狂，我连她住哪都不知道。\"他低头嘟囔，脸涨得通红。", favor: -20 }
+                    ]},
+                    { them: "我平时喜欢看书、健身、听音乐，很有品位。", options: [
+                        { text: "挺好的，都看什么书？", feedback: "他支支吾吾，摸了摸后脑勺。\"呃……主要看成功学，比如《如何30天成为百万富翁》《人性的弱点》之类的。\"他从包里掏出一本皱巴巴的书，封面都卷边了，\"这本我看了三遍，很有启发。\"你翻了翻，发现书里夹着外卖优惠券。", favor: 10 },
+                        { text: "看《故事会》吗？还是《知音》？", feedback: "他尴尬地咳嗽了一声。\"那些太低级了，我都是看有深度的。\"他拿起手机，\"我给你看我书架照片。\"翻了半天，最后给你看了一张网图，书架上全是精装书，但书脊上贴着的标签写着\"XX样板间\"。", favor: -10 },
+                        { text: "健身？你是指从沙发走到冰箱拿可乐吗？", feedback: "他拍了拍肚子，有点委屈。\"我最近在练腹肌，快出来了。你摸一下？\"他掀开衣服，露出一层软肉，你赶紧别过脸。他讪讪地放下衣服，\"等练出来再给你看。\"", favor: -15 }
+                    ]},
+                    { them: "我觉得我们三观挺合的，可以继续了解。", options: [
+                        { text: "可以，慢慢来。", feedback: "他笑了，露出一口不太整齐的牙。\"我就知道，我们很合适。\"他往你这边挪了挪椅子，\"你喜欢吃什么？下次我请你。不过我工资不高你别点太贵的。\"他说这话时挺了挺胸，好像在说\"我虽然穷但我骄傲\"。", favor: 5 },
+                        { text: "你的三观是'我觉得、你不懂、我最棒'吗？", feedback: "他想了半天，皱着眉。\"……这有什么问题吗？我觉得的当然是对的，你不懂是因为你还没到那个层次。\"他一本正经地解释，完全没意识到哪里不对。", favor: -20 },
+                        { text: "不用继续了，我已经了解你了：一个普信男。", feedback: "他疑惑地歪着头。\"普信男是什么意思？普通又自信？\"他想了想，然后笑了，\"那不就是我吗？你怎么知道的？\"他以为你在夸他，还挺高兴。你无语地翻了个白眼。", favor: -25 }
+                    ]},
+                    { them: "如果你愿意，我们可以先试试，不合适再分。", options: [
+                        { text: "可以接触看看，但不着急确定关系。", feedback: "他点头，但眼神里有点失望。\"也行，反正我有的是耐心。\"他拿起咖啡杯，发现已经凉了，又放下。\"不过你别让我等太久，我条件这么好，很多人追的。\"他挺了挺胸，假装有电话进来，对着手机说\"王总，稍等\"。", favor: 10 },
+                        { text: "试试？那你先发个朋友圈官宣，让所有人知道。", feedback: "他愣了，然后有点为难。\"我朋友圈有好多潜在客户，不能随便发。\"他想了想，\"要不我拉个群，把咱俩共同好友拉进去，宣布一下？\"他掏出手机开始翻联系人。", favor: -15 },
+                        { text: "不用试，我现在就拒绝你。拜拜。", feedback: "他愣在原地，手里的咖啡杯差点掉下来。\"你……你太绝情了！我条件这么好，你一定会后悔的！\"他站起来，又坐下，又站起来。\"我再给你一次机会，你收回刚才的话。\"你摇头，他气呼呼地拿起包走了，走了两步又回来拿忘在桌上的手机。", favor: -20 }
+                    ]},
+                    { them: "我觉得你是个好女孩，但我还需要时间考虑。", options: [
+                        { text: "好的，你慢慢考虑，我也需要时间。", feedback: "他松了口气，表情缓和了一些。\"行，那我们保持联系。\"他掏出手机，打开微信，又犹豫了，\"你先加我，还是我先加你？\"你还没回答，他已经把二维码递过来了，\"你扫我吧，我通过快。\"", favor: 5 },
+                        { text: "不用考虑，我帮你决定：我们不合适。再见。", feedback: "他急了，伸手想拉你的袖子，又缩回去。\"你再考虑考虑！我……我条件真的很好！像我这样的不多了！\"他语无伦次，额头冒汗。你起身要走，他挡在你面前，\"至少……至少把咖啡钱AA吧？\"", favor: -20 },
+                        { text: "你慢慢想，我先去相下一个了。", feedback: "他愤怒地拍了一下桌子，咖啡溅了出来。\"你……你怎么能这样？你这是脚踏两只船！\"他拿起纸巾擦袖子，手在发抖。\"我跟你说，下一个肯定没我好！你会后悔的！\"你头也不回地走了，他还在后面喊，\"我等你回来！\"", favor: -25 }
+                    ]}
+                ]
+            },
+            {
+                id: 3,
+                name: "昵称：成熟稳重懂生活",
+                tag: "年纪大=会疼人",
+                avatar: "👴",
+                initialFavorability: 40,
+                intro: "我52岁，离异，带一个30岁的儿子。女人嘛，不需要太漂亮，但要懂事。我会熬鸡汤、修水管、给你发60秒的语音。前妻不懂得珍惜我，我希望你是一个知冷知热的人。婚后我们可以住我家，我妈可以帮忙带孩子。对了，我不喜欢太能花钱的女人。",
+                opening: "他带你去了一家他'常去'的沙县小吃。坐下后，他很自然地帮你把筷子掰开，用纸巾擦了擦桌子，然后说：'女人嘛，就该被照顾。'",
+                endings: {
+                    high: { title: "意外的温暖", desc: "你本来没打算再联系他，但几天后你家水管坏了，你试着打了他的电话。他半小时就赶到了，拎着工具箱，满手油污帮你修好了水管。你请他喝了杯水，他坐在你家沙发上，局促地不敢乱看。临走时他说：'以后有啥需要帮忙的，尽管叫我。不收费。'你们慢慢成了朋友，偶尔他会给你发60秒语音，你开始觉得也没那么烦了。" },
+                    medium: { title: "和平分手", desc: "你们握手道别，他的手粗糙有力，掌心有厚茧。'祝你幸福。'他说这话时眼神真诚。你说'你也一样'。他走出咖啡店，骑上一辆旧电动车，消失在车流中。你删了他的微信，但偶尔会想起那个请你在沙县吃面的下午。" },
+                    low: { title: "沙县再见", desc: "一周后，你在沙县小吃遇到了他。他正带着儿子吃馄饨，看到你愣了一下，然后招手让你过来坐。他儿子很可爱，给你看了他的奥特曼卡片。他帮你付了馄饨钱，说'上次说好的我请'。你们没有加回微信，但后来你每次去沙县，几乎都能碰到他。他成了你的'沙县之友'。" }
+                },
+                dialogues: [
+                    { them: "女人嘛，就该被宠着。但别总花我的钱，毕竟我还要养儿子。", options: [
+                        { text: "宠是相互的，我也会对你好。", feedback: "他满意地点头，眼角的皱纹挤在一起。\"你这话我爱听。女人就该懂事儿。\"他伸手想拍拍你的肩，你侧身躲开，他的手僵在半空，然后缩回去挠了挠头。\"你慢慢就了解了，我这个人就是实在。\"", favor: 10 },
+                        { text: "宠我？那你先把这杯咖啡的钱付了，20块。", feedback: "他皱了皱眉，从口袋里掏出钱包，翻了半天，里面只有几张皱巴巴的零钱和一张超市小票。他抽出5块钱放在桌上，\"我……我只有现金，你先垫着？下次我请。\"你盯着那5块钱，他脸红了，\"沙县没这么贵……\"", favor: -15 },
+                        { text: "养儿子？那你去找个免费保姆吧。", feedback: "他脸色一沉，放下咖啡杯，杯底磕在桌上发出沉闷的响声。\"你这孩子怎么说话呢？我找的是老婆，不是保姆。\"他抱起胳膊，往后一靠，\"现在的年轻人，一点不懂得尊重长辈。\"他别过脸去，不再看你。", favor: -25 }
+                    ]},
+                    { them: "前妻不懂珍惜，我希望你是个懂事的女人。", options: [
+                        { text: "我会尽量理解你，但我也希望你能理解我。", feedback: "他笑了，露出一口烟渍泛黄的牙。\"行，互相理解。\"他往前凑了凑，压低声音，\"我跟你说，前妻就是太能花钱了，一个月花两三千，谁养得起？\"他说这话时，眼神里透着一种理直气壮。", favor: 5 },
+                        { text: "懂事是什么意思？是帮你洗内裤、做饭、带娃，还不能有意见？", feedback: "他愣住了，张了张嘴，又闭上。他拿起咖啡杯喝了一口，发现已经凉了，皱眉放下。\"你……你曲解我的意思了。我是说，两个人要互相扶持。\"他擦了擦额头的汗，小声嘟囔，\"现在的年轻人，想法太极端。\"", favor: -15 },
+                        { text: "你前妻为什么离开你？是因为你只会熬鸡汤吗？", feedback: "他叹气，肩膀耷拉下来，整个人显得老了好几岁。\"她嫌我不够浪漫。但浪漫能当饭吃吗？我把工资都给她了，她还想要什么？\"他搓了搓手指，\"女人啊，就是不知足。\"他摇摇头，眼神空洞。", favor: -10 }
+                    ]},
+                    { them: "我会熬鸡汤、修水管、发60秒语音。你受得了吗？", options: [
+                        { text: "实用技能，挺好的。语音可以转文字。", feedback: "他有点失望，撇了撇嘴。\"语音才有感情，转文字就没那味儿了。\"他拿起手机，打开微信，给你看他和朋友的聊天记录，满屏都是60秒的语音条。\"你看，我朋友都喜欢听我说话。\"你看到对方头像旁边全是\"已拒绝\"。", favor: 5 },
+                        { text: "60秒语音？我一般直接转文字，但你的普通话……", feedback: "他急了，脸涨得通红。\"我普通话很标准！我考过证的！\"他从手机里翻出一张照片，是一个模糊的普通话证书，名字都看不清。\"你看，二甲！\"你仔细一看，照片是P的，他迅速收回去。", favor: -10 },
+                        { text: "鸡汤？是心灵鸡汤还是真的鸡汤？真的我可以喝。", feedback: "他眼睛一亮，坐直了身体。\"真的！我熬的鸡汤可好喝了，我儿子一顿能喝三碗。\"他比划着碗的大小，\"改天你来我家，我给你熬。\"他顿了顿，又补充，\"不过你得出材料钱，一只鸡要四五十呢。\"", favor: -5 }
+                    ]},
+                    { them: "婚后我们住我家，我妈可以帮忙带孩子。", options: [
+                        { text: "可以商量，但我也希望有独立空间。", feedback: "他皱眉，手指敲着桌面。\"独立空间？我家三室一厅，够住了。我妈住一间，儿子住一间，我们住一间。\"他数着手指，\"你要是觉得挤，可以在阳台摆个沙发床。\"他说这话时，表情很认真，不像在开玩笑。", favor: 10 },
+                        { text: "你家是那个沙县小吃楼上的出租屋吗？多大？", feedback: "他挺了挺胸，有点骄傲。\"50平，但够用了！我收拾得可干净了。\"他掏出手机给你看照片，房间里堆满了杂物，沙发上全是衣服。\"乱中有序，你懂不懂？\"他指了指一张照片，\"你看这个茶几，是我从二手市场淘的，实木的！\"", favor: -15 },
+                        { text: "不用了，我更喜欢住我自己家。你搬过来，房租AA。", feedback: "他摇头，态度很坚决。\"不行，男人怎么能住女人家？没面子。\"他抱起胳膊，\"再说了，我妈也不会同意的。你要是嫌我家小，可以凑钱换个大点的，你家出首付，我家还贷款。\"他说的\"还贷款\"其实是\"你出钱我家住\"。", favor: -20 }
+                    ]},
+                    { them: "我不喜欢太能花钱的女人。你一个月花多少？", options: [
+                        { text: "我花自己赚的，不会乱花。", feedback: "他松了口气，表情缓和了一些。\"那就好。我前妻就是太能花了，一个月花两三千，我工资才多少？\"他喝了口咖啡，\"你要是跟我过日子，咱们得省着点，毕竟还要养儿子。\"他掰着手指算账，\"买菜去菜市场，别去超市，超市贵。\"", favor: 5 },
+                        { text: "我一个月花5万，怎么了？我自己赚的。", feedback: "他瞪大了眼，咖啡差点洒出来。\"5万？你……你干什么的？\"他上下打量你，\"富二代？还是……做生意的？\"他咽了口唾沫，\"那……那你养我吧。\"他说完又觉得不妥，咳嗽两声，\"开玩笑的。\"", favor: -20 },
+                        { text: "花多少关你什么事？又没花你的钱。", feedback: "他嘀咕了一句，声音很小，你只听到\"以后结婚了就是我的钱了\"。他抬头看你，挤出一个笑，\"我是为你好，省钱是美德。你看我，一件外套穿了八年。\"他扯了扯袖子，肘部都磨白了。", favor: -15 }
+                    ]},
+                    { them: "我觉得你挺会过日子的，我们很合适。", options: [
+                        { text: "谢谢，过日子需要两个人一起努力。", feedback: "他点头，嘴角微微上扬。\"对，一起努力。\"他伸出手想跟你击掌，你只是礼貌地笑了笑，他尴尬地把手缩回去。\"我这个人没啥大本事，但靠谱。你要是跟我，不会让你吃苦。\"他说这话时眼神真诚了一瞬间。", favor: 10 },
+                        { text: "会过日子？是指能在沙县小吃里吃出米其林的感觉吗？", feedback: "他愣了一下，然后笑了，露出一口黄牙。\"你还别说，沙县挺好吃的。馄饨、拌面，经济实惠。\"他擦了擦嘴角，\"我一般一周去吃三次，老板都认识我了。\"他顿了顿，\"下次我带你去，你尝尝，真的不错。\"", favor: -10 },
+                        { text: "合适？是你抠门还是我眼瞎？", feedback: "他生气了，放下咖啡杯，杯子磕在桌上发出清脆的响声。\"你……你怎么骂人呢？我好心好意跟你相亲，你就这态度？\"他抱起胳膊，扭头看向窗外，胸口起伏着。\"现在的年轻人，一点礼貌都不懂。\"他嘟囔着，声音越来越小。", favor: -25 }
+                    ]},
+                    { them: "我这个人很实在，不会甜言蜜语，但会行动。", options: [
+                        { text: "行动比甜言蜜语重要。", feedback: "他高兴了，转过身来，表情缓和。\"你懂我。\"他从口袋里掏出一把钥匙，\"你看，这是我家的钥匙，你要是愿意，随时可以来。\"你看着那把生锈的钥匙，不知道他是什么意思。", favor: 5 },
+                        { text: "行动？你的行动就是请我吃沙县小吃，然后让我AA？", feedback: "他辩解，声音提高了半度。\"沙县怎么了？干净卫生！再说了，AA是为了公平。现在的女生，不是都喜欢AA吗？\"他指了指周围，\"你看那边那桌，不也是AA？\"你扭头看去，是两个男生在吃饭。", favor: -15 },
+                        { text: "不用行动，你只要别说话，我就谢天谢地了。", feedback: "他沉默了，嘴张了张又闭上。他低头看手机，手指在屏幕上划来划去，但其实什么都没打开。过了大约一分钟，他抬起头，委屈地说：\"我就说了一句，你就让我闭嘴。我在家我儿子都不这样。\"", favor: -20 }
+                    ]},
+                    { them: "我儿子很乖的，你一定会喜欢他。", options: [
+                        { text: "希望我们能相处愉快。", feedback: "他笑了，眼角的皱纹挤在一起。\"会的，我儿子可懂事了。他今年8岁，会自己洗袜子。\"他掏出手机给你看儿子的照片，是个胖乎乎的小男孩，脸上还有饭粒。\"可爱吧？跟他爸一样帅。\"他得意地晃了晃手机。", favor: 5 },
+                        { text: "你儿子乖？那他会不会叫我妈妈？我可不想当后妈。", feedback: "他摇头，表情严肃。\"不会，他叫阿姨。他妈虽然离婚了，但偶尔也会来看他。\"他顿了顿，\"你要是对他好，他自然会跟你亲。你要是对他不好……\"他眼神暗了暗，没继续说下去。", favor: -10 },
+                        { text: "我不喜欢小孩，尤其是别人的小孩。", feedback: "他脸色大变，原本温和的表情瞬间冷了下来。他把手机重重地扣在桌上，身体往后一靠。\"那……那就算了。我儿子是我的命，我不能找不喜欢他的人。\"他拿起包，站起来，\"今天的咖啡我请了，不用AA。\"他头也不回地走了，走到门口还绊了一下门槛。", favor: -30 }
+                    ]},
+                    { them: "你介意我比你大很多吗？年龄大会疼人。", options: [
+                        { text: "年龄不是问题，关键是性格合不合。", feedback: "他欣慰地笑了，眼角的皱纹更深了。\"你这话我爱听。我虽然大你十几岁，但我身体好，不抽烟不喝酒。\"他拍了拍胸脯，\"我能照顾你。\"他说这话时，咳嗽了两声，赶紧喝了口水。", favor: 10 },
+                        { text: "大很多？你想当我爸吗？", feedback: "他尴尬地摸了摸后脑勺，耳朵有点红。\"别……别开玩笑。我就是说，我比你成熟，能照顾你。\"他拿起咖啡杯，发现已经喝完了，又放下。\"我爸都七十多了，我还年轻。\"他挺了挺胸，试图证明自己还年轻。", favor: -20 },
+                        { text: "介意。我喜欢年轻的，比如20岁的。", feedback: "他怒了，拍了一下桌子，咖啡杯跳了起来。\"你……你怎么不早说？浪费我时间！\"他站起来，拿起包，\"我儿子还等我回家做饭呢，不跟你聊了。\"他气呼呼地走了，走了两步又回来，\"那……那今天的咖啡你付吧，我没带够钱。\"", favor: -25 }
+                    ]},
+                    { them: "我觉得我们可能不太合适，你太强势了。", options: [
+                        { text: "可能我们都需要再考虑一下。", feedback: "他点头，叹了口气。\"行吧，你好好考虑。我也想想。\"他从口袋里掏出一张纸条，上面写着他的手机号。\"这是我电话，你考虑好了打给我。\"他顿了顿，\"不过别太晚，我九点半就睡了。\"", favor: 5 },
+                        { text: "你才发现？我强势是因为你太弱了。", feedback: "他无语地看了你一眼，嘴唇动了动，最终没说什么。他把纸条收回去，拿起包，站起来。\"算了，我惹不起你。祝你找到合适的。\"他走到门口，又回头说了一句，\"女孩子太强势，不好嫁。\"然后推门出去了。", favor: -20 },
+                        { text: "太好了，正想怎么说分手呢。", feedback: "他愣了一下，表情复杂。\"你……你早就想走了？\"他苦笑了一下，摇了摇头。\"行吧，我也不强求。沙县还等着我呢。\"他拿起桌上的半包纸巾塞进口袋，然后慢悠悠地走了。你看到他走出门后，在门口站了一会儿，好像在等什么，但最后还是走了。", favor: -15 }
+                    ]}
+                ]
+            },
+            {
+                id: 4,
+                name: "昵称：听妈妈的话，别让她受伤",
+                tag: "我妈说…",
+                avatar: "👨‍💻",
+                initialFavorability: 40,
+                intro: "我30岁，大厂程序员，年薪40万。我妈说我的工资卡应该由她保管，这样以后买房才够首付。我妈说女生不能太胖，不能太矮，要会做饭，特别是要会做红烧肉，因为那是我的最爱。我妈说婚后必须一起住，她可以帮我们带孩子。我妈说……对了，你妈会游泳吗？",
+                opening: "他全程戴着蓝牙耳机，你隐约听到那头有个中年女声在说话。他抱歉地笑笑：“我妈怕我紧张，给我打气呢。”",
+                endings: {
+                    high: { title: "幸福三重奏", desc: "你对他礼貌客气，他以为你对他有意思，当场打电话给他妈报喜。第二天，他妈就拎着行李搬到了你家楼下。你们'顺利'在一起了。婚后你和他、他妈挤在50平的房子里，每天早晨他妈会敲三次门喊你起来做早饭。他坐在沙发上翘着二郎腿说：'我妈说了，媳妇就该伺候老公。'你看着阳台上晾着的他妈的碎花内裤，陷入了沉思。三个月后你瘦了20斤，不是因为健身，是因为抢不过他俩的饭。" },
+                    medium: { title: "礼貌再见", desc: "他送你到咖啡店门口，从口袋里掏出一张皱巴巴的纸巾递给你，说：'你是个好女孩，但我们可能不太合适。'你接过纸巾，擦了擦手，说'你也挺好的，祝你找到合适的'。你们各自转身，走了几步，你回头看他正对着手机发语音：'妈，她说我不错……'" },
+                    low: { title: "互删", desc: "回到家，你打开微信，发现他发来一条58秒的语音。你没点开，直接删除了好友。过了一会儿，他又用另一个号加你，验证消息写着：'你是不是手滑了？再给我一次机会。'你拉黑了他。从此，他每隔几天就换个号加你，最后你换了手机号。" }
+                },
+                dialogues: [
+                    { them: "我妈让我带了一包红烧肉，你尝尝。", options: [
+                        { text: "谢谢阿姨，看起来很好吃。", feedback: "他高兴地打开饭盒，红烧肉的香味飘了出来。他夹了一块递到你面前，筷子在空中晃了晃，\"你尝尝，我妈做的，比外面卖的好吃多了。\"你咬了一口，确实不错。他得意地笑了，\"我妈说了，抓住男人的心先抓住男人的胃。\"", favor: 10 },
+                        { text: "你先尝一口，我看看有没有毒。", feedback: "他立刻夹了一块塞进嘴里，嚼得满嘴流油。\"没毒！我妈做的东西怎么可能有毒？\"他又夹了一块，递给你，\"你看，我都吃了，没事的。\"他的嘴角还挂着肉汁，眼睛亮晶晶地看着你。", favor: -10 },
+                        { text: "你妈做的不如我家的外卖。", feedback: "他生气了，把饭盒盖上，塞回包里。\"你……你胡说！我妈的红烧肉是祖传秘方！\"他抱起胳膊，扭头看向窗外，\"好心给你吃，你还挑三拣四。我妈知道了会伤心的。\"他嘟囔着，声音里带着委屈。", favor: -20 }
+                    ]},
+                    { them: "我妈说女生不能太胖，你体重多少？", options: [
+                        { text: "100斤，应该算标准吧。", feedback: "他点头，表情放松了一些。\"嗯，我妈说120斤以下就行。\"他上下打量你，\"你应该不到100吧？看着挺瘦的。\"他拿起手机，好像要给他妈发消息，\"我跟妈说一声，她肯定高兴。\"", favor: 5 },
+                        { text: "100公斤，怎么了？你妈管得着吗？", feedback: "他震惊地瞪大了眼，嘴张成了O型。\"100……100公斤？\"他咽了口唾沫，眼神在你身上扫来扫去，\"看不出来啊……\"他擦了擦额头的汗，\"我妈说不行，太胖了不健康。\"他往后缩了缩，好像怕你压到他。", favor: -20 },
+                        { text: "你妈怎么不问问她自己多重？先管好自己吧。", feedback: "他急了，脸涨得通红，连脖子都红了。\"我妈不胖！她很苗条的！\"他站起来，又坐下，椅子发出刺耳的响声。\"你……你怎么能说我妈？我妈是世界上最好的妈妈！\"他眼圈都红了，好像下一秒就要哭出来。", favor: -25 }
+                    ]},
+                    { them: "婚后必须一起住，她可以照顾我们。", options: [
+                        { text: "我需要一点私人空间，可以住附近吗？", feedback: "他摇头，态度很坚决。\"不行，我妈说必须一起住。她可以帮我们做饭、打扫卫生，以后还能带孩子。\"他数着手指，\"而且住一起省钱，不用交两份房租。\"他认真地看着你，\"我妈很好相处的，你习惯了就好了。\"", favor: 10 },
+                        { text: "一起住？那你妈睡中间，我们睡两边？", feedback: "他想了想，居然认真地回答：\"也可以，我妈说这样热闹。不过我妈睡觉打呼噜，你可能受不了。\"他挠了挠头，\"要不你睡沙发？我妈睡床，我睡地板？\"你简直不敢相信自己的耳朵。", favor: -15 },
+                        { text: "我不接受，你和你妈过吧。", feedback: "他委屈地低下头，手指绞着衣角。\"你……你怎么能这样？我妈说一家人就要住一起。\"他抬起头，眼眶红红的，\"我妈养我这么大，我不能丢下她。\"他吸了吸鼻子，\"你要是不同意，那……那我们就没戏了。\"", favor: -25 }
+                    ]},
+                    { them: "你的衣服太暴露了，不端庄。", options: [
+                        { text: "那我下次穿正式一点。", feedback: "他满意地点头，表情缓和了一些。\"嗯，我妈说你这样穿不好。\"他指了指你的领口，\"这里，太低了。我妈说女孩子要端庄。\"他叹了口气，\"你改改，我妈就同意了。\"他好像已经把你当成准媳妇了。", favor: 5 },
+                        { text: "我穿的是羽绒服，哪里暴露了？", feedback: "他仔细看了看你身上的羽绒服，裹得严严实实，连脖子都包住了。\"哦……是羽绒服啊。\"他挠了挠头，\"我妈看错了。我妈眼神不太好。\"他笑了笑，\"那我跟她说一声，误会了。\"他拿起手机，开始打字。", favor: -10 },
+                        { text: "告诉你妈，下次我穿比基尼来。", feedback: "他脸红了，红到了耳朵根。\"不……不行！我妈会骂我的！\"他捂住脸，从指缝里看你，\"你……你别开玩笑。我妈心脏不好，受不了刺激。\"他深呼吸了几下，好像在平复心情。", favor: -20 }
+                    ]},
+                    { them: "女生要会做饭，你会做红烧肉吗？", options: [
+                        { text: "我可以学，你妈妈可以教我。", feedback: "他高兴地差点跳起来，眼睛亮晶晶的。\"真的？我妈肯定会很高兴！\"他拿起手机，\"我现在就跟我妈说，她一直想收个徒弟。\"他兴奋地打字，差点把咖啡杯碰倒。\"你什么时候有空？周末？我妈周末都在家。\"", favor: 10 },
+                        { text: "我会做，但只做给我老公吃。你先把工资卡从你妈那里要回来。", feedback: "他摇头，表情为难。\"不行，我妈说工资卡她管，这样以后买房才够首付。\"他搓了搓手指，\"而且我妈会理财，我花钱大手大脚的。\"他小心翼翼地看着你，\"能不能先做红烧肉，工资卡的事以后再说？\"", favor: -20 },
+                        { text: "我不会，让你妈做一辈子吧。", feedback: "他失望地低下头，肩膀耷拉着。\"我妈说不会做饭的女生娶不得。\"他叹了口气，\"我妈也老了，不能做一辈子啊。\"他抬头看你，眼神里有一丝哀求，\"你能不能学一下？不难的，我帮你打下手。\"", favor: -15 }
+                    ]},
+                    { them: "我们八字很合，可以定下来了。", options: [
+                        { text: "八字合是个好兆头，但还是要多了解。", feedback: "他点头，但表情有点着急。\"我妈说八字合就很难得，错过了就没有了。\"他往前凑了凑，\"我妈找了三个大师看，都说我们很配。\"他拿出手机，给你看聊天记录，满屏都是他妈的语音。\"你要是不信，我妈可以带你去见那个大师。\"", favor: 5 },
+                        { text: "你妈还会算命？那你妈有没有算出来我其实不想和你在一起？", feedback: "他愣住，嘴张了张又闭上。他低头看手机，好像在找他妈的聊天记录。\"我妈……我妈没算这个。\"他抬起头，眼神迷茫，\"你不想和我在一起？为什么？我们八字很合啊。\"他好像无法理解八字合和感情有什么关系。", favor: -20 },
+                        { text: "八字合？你和你妈八字最合，你娶你妈吧。", feedback: "他怒了，拍了一下桌子，咖啡杯晃了晃，咖啡溅了出来。\"你……你太过分了！\"他站起来，脸涨得通红，\"我妈是我妈，老婆是老婆，不一样！\"他呼吸急促，拳头攥得紧紧的。\"你再这样说，我……我就走了！\"他拿起包，但又没走，站在那里发抖。", favor: -30 }
+                    ]},
+                    { them: "你要学做红烧肉，不然她不同意。", options: [
+                        { text: "我可以周末去你家学。", feedback: "他兴奋地差点跳起来，赶紧拿起手机。\"我现在就跟妈说！她肯定高兴坏了！\"他飞快地打字，嘴里还念叨着，\"妈，她说周末来学红烧肉……嗯嗯……好……\"他抬起头，笑成一朵花，\"我妈说欢迎你来，她要给你做好多好吃的。\"", favor: 10 },
+                        { text: "那你能不能先学会做满汉全席？不然我不同意。", feedback: "他无语地看了你一眼，嘴张了张，又闭上。他低头看了看手机，好像在求助。\"满……满汉全席？我不会。\"他挠了挠头，\"我妈也不会。你能不能换个要求？\"他可怜巴巴地看着你，像一只做错事的小狗。", favor: -15 },
+                        { text: "我不学，你让你妈自己做吧。", feedback: "他眼泪汪汪的，眼眶红红的，鼻头也红了。\"你……你怎么这么狠心？\"他吸了吸鼻子，\"我妈说不会做红烧肉的女生不能要。\"他擦了擦眼睛，\"我……我再跟我妈商量商量。\"他拿起手机，好像要给他妈打电话，但又犹豫了。", favor: -25 }
+                    ]},
+                    { them: "你的工作不稳定，不如考公务员。", options: [
+                        { text: "我会考虑，但目前工作还行。", feedback: "他松了口气，表情缓和了一些。\"嗯，我妈说公务员稳定，以后好带孩子。\"他往前凑了凑，\"我妈认识一个培训班，可以打折。你要不要了解一下？\"他掏出手机，好像要给你看课程介绍。", favor: 5 },
+                        { text: "你妈给我安排个公务员，我就考。", feedback: "他为难地皱眉，手指敲着桌面。\"我妈……我妈不认识人。\"他挠了挠头，\"你可以自己考啊，我妈说只要努力就能考上。\"他认真地看着你，\"我妈当年就是考上的，后来为了生我辞职了。\"他眼里充满了崇拜。", favor: -15 },
+                        { text: "你妈是皇帝吗？说什么就是什么？", feedback: "他点头，表情认真。\"在我家，我妈就是皇帝。\"他顿了顿，\"不，是太后。我爸都得听她的。\"他笑了笑，\"你习惯了就好了，我妈其实很好说话的，只要听她的就行。\"他说得理所当然，好像这是天经地义的事。", favor: -20 }
+                    ]},
+                    { them: "我们今晚之前必须决定要不要在一起。", options: [
+                        { text: "我需要时间，不能这么急。", feedback: "他犹豫了一下，拿起手机看了看，又放下。\"我妈说……夜长梦多。\"他搓了搓手指，\"你能不能快点决定？我妈等着呢。\"他焦急地看着你，手指不停地敲着桌面，发出急促的\"哒哒\"声。", favor: 5 },
+                        { text: "好，我决定：不在一起。你回去跟你妈说。", feedback: "他愣住了，嘴张着，像被冻住了一样。过了几秒，他低下头，肩膀抖动着，好像在哭。\"你……你让我怎么跟我妈交代？\"他抬起头，眼泪在眼眶里打转，\"我妈会骂我的。\"他拿起手机，又放下，反复好几次。", favor: -20 },
+                        { text: "那你妈有没有说，如果我不答应，她会不会打你？", feedback: "他小声说：\"会骂我。\"他缩了缩脖子，好像他妈的骂声已经在耳边响起。\"我妈骂人很凶的。\"他吸了吸鼻子，\"你能不能假装答应？我回去跟我妈说我们在一起了，过两天再说分手。\"他期待地看着你，好像这是个绝妙的计划。", favor: -15 }
+                    ]},
+                    { them: "我们还是做朋友吧，我妈说你不合适。", options: [
+                        { text: "好吧，做朋友也行。", feedback: "他点头，表情有点失落。\"嗯，那……那我们还是朋友。\"他伸出手想跟你握手，又缩回去。\"我妈说可以做朋友，但不能谈恋爱。\"他笑了笑，笑容有点勉强。\"那……那我先走了，我妈等我回家吃饭。\"", favor: 5 },
+                        { text: "你妈终于说对了一次。再见，妈宝男。", feedback: "他低头走了，肩膀耷拉着，脚步很慢。走到门口，他回头看了你一眼，嘴唇动了动，好像想说什么，但最终还是推门出去了。你看到他站在门外，拿出手机，好像正在打电话。他边走边说，\"妈，她说我是妈宝男……\"声音越来越远。", favor: -20 },
+                        { text: "不用了，你去找你妈聊天吧。", feedback: "他委屈地走了，一步三回头。他走到门口，又回来拿忘在桌上的帽子。他戴上帽子，帽檐压得很低，几乎遮住了眼睛。他推门出去，风把门吹得\"砰\"一声关上。你透过玻璃窗，看到他骑上一辆小电驴，后座上还绑着个保温箱，上面贴着\"妈妈的味道\"。", favor: -25 }
+                    ]}
+                ]
+            },
+            {
+                id: 5,
+                name: "昵称：灵魂在流浪",
+                tag: "我的灵魂很高贵",
+                avatar: "🎭",
+                initialFavorability: 40,
+                intro: "我是一个诗人，也是一个行为艺术家。物质对我来说是枷锁，我追求的是灵魂的自由。我不用微信，因为那太浮躁了。如果你想找我，可以给我写信。我不在乎你有没有钱，但你必须能理解我的诗。对了，今天我忘带钱了，这杯咖啡你可以请我吗？",
+                opening: "他约你在一个免费的公园长椅见面。你到的时候，他正对着一棵树发呆，手里拿着一本翻到某一页的诗集。看到你，他幽幽地说：\"你迟到了三分钟，我差点写了一首诗。\"",
+                endings: {
+                    high: { title: "诗与远方", desc: "你对他礼貌客气，他以为你被他的诗意打动。第二天，他搬到了你家楼下，每天早晨在你窗下朗诵诗歌。你报警了，警察来了之后他给警察念了一首诗，警察也被感动了（并没有）。你只好搬家。一个月后，你在新家收到一封信，里面是一首诗，开头写着'致我远去的缪斯'。你叹了口气，把信扔进了垃圾桶。" },
+                    medium: { title: "相忘", desc: "你们在公园长椅告别，他送你一朵野花，你扔进了垃圾桶。后来你偶尔会在朋友圈看到他的动态：今天在西藏，明天在大理，后天在某个寺庙。他瘦了很多，但笑容依然。你没有点赞，也没有删除。你们成了彼此朋友圈里的陌生人。" },
+                    low: { title: "拉黑", desc: "回到家，你发现他给你发了一条短信，是一首200行的长诗。你没看完，直接拉黑了他。他又换了号码继续发，你换了手机号。一年后，你在一个诗歌公众号上看到他的名字，他依旧是一名靠四处投稿为生的流浪诗人。你关掉了文章，继续刷短视频。" }
+                },
+                dialogues: [
+                    { them: "你迟到了三分钟，我差点写了一首诗。", options: [
+                        { text: "抱歉，下次我早点到。", feedback: "他微微摇头，眼神飘向窗外。\"迟到是命运的安排，你让我多了一首诗的灵感。\"他从口袋里掏出一张皱巴巴的纸，上面写着几行字，\"要听听吗？\"他期待地看着你。", favor: 10 },
+                        { text: "那你写了吗？念给我听听，我帮你改改。", feedback: "他清了清嗓子，用一种话剧腔念道：\"你迟到的三分钟/咖啡凉了/我的心也凉了/但太阳还热着。\"念完后他紧张地看着你，\"怎么样？是不是很有深度？\"你忍住笑，他以为你被感动了。", favor: -10 },
+                        { text: "别写诗了，你先把咖啡钱付了，我没带钱。", feedback: "他愣了一下，然后摸了摸口袋，掏出几个硬币。\"我……我只有五块钱。\"他脸红了，\"要不我们AA？你出十五，我出五块？\"他把硬币排在桌上，有一枚还滚到了地上。", favor: -25 }
+                    ]},
+                    { them: "物质对我来说是枷锁，我只追求灵魂的自由。", options: [
+                        { text: "自由很重要，但物质基础也重要。", feedback: "他皱眉，像被冒犯了。\"你被世俗腐蚀了。真正的自由是不需要钱的。\"他指了指天空，\"你看鸟儿，它们不用付房租。\"你抬头看了一眼雾霾天，没有鸟。", favor: 5 },
+                        { text: "那你的灵魂自由地饿肚子吗？你中午吃了吗？", feedback: "他摸了摸肚子，有点尴尬。\"吃了，昨天剩的馒头配老干妈。\"他顿了顿，\"精神食粮比物质更重要，你懂吗？\"他眼神坚定，但肚子咕咕叫了一声。", favor: -15 },
+                        { text: "那你能不能把枷锁给我？比如你口袋里的那100块。", feedback: "他捂住口袋，警惕地看着你。\"钱是枷锁，我不能害你。\"他往后缩了缩，\"你要学会放下，不要被物质绑架。\"你盯着他的口袋，他赶紧把拉链拉上。", favor: -20 }
+                    ]},
+                    { them: "我不用微信，太浮躁了。你可以给我写信。", options: [
+                        { text: "写信也挺浪漫的，不过有点慢。", feedback: "他眼睛一亮，坐直了身体。\"慢才是美！等待让感情更有厚度。\"他从包里掏出一个信封，\"我已经写好了地址，你直接投递就行。\"你一看，地址是\"某某公园长椅第三棵树下\"。", favor: 5 },
+                        { text: "那我写邮件吧，或者用鸽子传书？", feedback: "他认真想了想，摇头。\"邮件太冰冷，鸽子不靠谱。还是手写信，用钢笔，带墨香。\"他递给你一支钢笔，\"这支笔借你，记得还。\"钢笔上刻着\"灵魂永不朽\"。", favor: -10 },
+                        { text: "不用这么麻烦，我们直接意念交流。你猜我现在在想什么？", feedback: "他闭上眼睛，双手放在太阳穴上，做出发功的样子。\"你在想……我很帅。\"他睁开眼，自信地看着你。你摇头，他又闭上眼，\"那你在想……我很穷。\"你无语地翻了个白眼。", favor: -15 }
+                    ]},
+                    { them: "今天我没带钱，你可以请我喝咖啡吗？", options: [
+                        { text: "可以，下次你请我。", feedback: "他松了口气，双手合十。\"谢谢！下次我写一首诗送你，比咖啡珍贵。\"他端起咖啡杯，喝了一大口，嘴角沾了奶泡。\"这咖啡有灵魂，你感觉到了吗？\"你只感觉到他想蹭饭。", favor: 10 },
+                        { text: "可以，但你要用一首诗来换。必须是原创。", feedback: "他皱眉思考了三十秒，然后念道：\"咖啡是黑的/你的心是亮的/我的口袋是空的。\"念完他得意地看着你，\"怎么样？存在主义风格。\"你给了他一杯白开水。", favor: -15 },
+                        { text: "我没钱，我比你还穷。要不我们喝白开水？", feedback: "他叹了口气，一脸失望。\"白开水没有灵魂。算了，我请你吧。\"他掏出那五块钱，叫来服务员，\"一杯美式，最便宜的。\"服务员说不够，他又加了两个硬币，剩下五毛钱放在桌上当小费。", favor: -10 }
+                    ]},
+                    { them: "你懂我的灵魂吗？我觉得你不懂。", options: [
+                        { text: "不太懂，但你可以慢慢说给我听。", feedback: "他感动地握住你的手（你迅速抽回），眼眶泛红。\"你是第一个愿意听我说灵魂的人。\"他深吸一口气，\"我的灵魂是流浪的，它不属于任何地方……\"他开始长篇大论，你开始走神。", favor: 5 },
+                        { text: "你的灵魂？不就是穷吗？我懂。", feedback: "他生气了，脸涨得通红。\"穷是表象！我的灵魂是富有的！\"他指着自己的胸口，\"这里有诗，有远方，有星辰大海！\"你看了看他的口袋，里面只有纸巾和零钱。", favor: -20 },
+                        { text: "你的灵魂在流浪，我的灵魂在打工。我们不是一个世界的。", feedback: "他愣住了，然后苦笑。\"打工也是一种流浪，只是你不知道而已。\"他喝了口咖啡，\"你迟早会觉醒的，我等你。\"他眼神空洞，像个传教士。", favor: -15 }
+                    ]},
+                    { them: "我最近写了一首长诗，关于生命的虚无。", options: [
+                        { text: "念一小段给我听听？", feedback: "他兴奋地从包里掏出一本笔记本，翻到其中一页，清了清嗓子。\"生命啊，你是虚无的雾/我是雾中行走的魂/走啊走，走到没有尽头的尽头……\"他念了五分钟，你偷偷看了眼手机，他还在念。", favor: 10 },
+                        { text: "念吧，我看看有多虚无。", feedback: "他念到第三分钟时，你打了个哈欠。他停下来，皱眉。\"你困了？我的诗让你进入催眠状态？那也是艺术的一种。\"他继续念，声音更大了，旁边顾客都在看你们。", favor: -10 },
+                        { text: "别念了，我直接给你钱，你去找个班上吧。", feedback: "他愣住了，把笔记本重重合上。\"你……你侮辱我！诗是不能用钱衡量的！\"他把笔记本塞回包里，抱起胳膊，扭头看向窗外。\"你走吧，我不需要你的施舍。\"但他没有让你走的意思。", favor: -25 }
+                    ]},
+                    { them: "我觉得你很有艺术天赋，要不要跟我一起搞行为艺术？", options: [
+                        { text: "听起来很有趣，不过我怕我不够艺术。", feedback: "他眼睛发光，抓住你的手腕（你又抽回）。\"不，你有！你的迟疑就是艺术！\"他站起来，原地转了一圈，\"我们可以做一个关于'犹豫'的行为艺术，就在这个咖啡店！\"周围顾客都看过来。", favor: 5 },
+                        { text: "行为艺术？比如在街上装乞丐那种？", feedback: "他兴奋地拍手。\"对！但不是装乞丐，是'展示贫穷的美学'！\"他从包里掏出一块纸板，\"我已经写好了标语：'给我一块钱，送你一首诗'。\"你看了纸板，上面字歪歪扭扭。", favor: -10 },
+                        { text: "不了，我更喜欢行为金融学。你去搞艺术，我去搞钱。", feedback: "他鄙夷地看着你，摇摇头。\"钱是粪土，艺术是永恒。你总有一天会后悔的。\"他收起纸板，情绪低落。\"我以为你是懂我的人，没想到你也是俗人。\"他叹气。", favor: -20 }
+                    ]},
+                    { them: "我下个月要去西藏朝圣，寻找灵感。你一起吗？", options: [
+                        { text: "我可能没时间，但祝你一路顺风。", feedback: "他有点失望，但还是点头。\"好吧。我会在布达拉宫前为你祈福。\"他从口袋里掏出一根红绳，\"这是我开过光的，送你，保平安。\"你接过红绳，上面有股酥油茶的味道。", favor: 5 },
+                        { text: "去西藏？你有钱买票吗？还是打算徒步？", feedback: "他挺起胸，骄傲地说：\"徒步！用双脚丈量大地，这才是朝圣的意义。\"他掰着手指算，\"从这走到西藏，大概需要三个月。我准备了一双解放鞋和十包压缩饼干。\"你看了看他的鞋，已经开胶了。", favor: -10 },
+                        { text: "去西藏？不如去民政局，那里更需要勇气。", feedback: "他愣住了，脸红了。\"民……民政局太世俗了。我要的是灵魂的洗礼，不是一张纸。\"他抱起胳膊，\"你不懂我。\"他低头喝咖啡，不再说话。", favor: -15 }
+                    ]},
+                    { them: "其实我挺喜欢你的，但你太物质了。", options: [
+                        { text: "我物质？我只是想过好生活而已。", feedback: "他叹气，摇摇头。\"好生活不是钱能买到的。你看我，没钱也很快乐。\"他指了指自己的笑容，但笑容有点勉强，\"你跟我在一起，我会教你什么是真正的幸福。\"他伸手想拉你，你躲开了。", favor: 5 },
+                        { text: "你喜欢我？那你用什么喜欢？用你的诗吗？诗能当饭吃？", feedback: "他受伤地捂住胸口，做出被箭射中的表情。\"诗是精神食粮，比饭重要！没有诗，人只是行尸走肉！\"他激动地站起来，\"你不觉得吗？\"旁边顾客都看过来，你尴尬地想钻地缝。", favor: -20 },
+                        { text: "那你去找个不物质的吧，比如门口那棵树。", feedback: "他愣了一秒，然后真的看向门口的树，若有所思。\"树？树确实不物质，而且很诗意。\"他转过头，\"但你比树好看，我还是选你。\"你无语地翻了个白眼。", favor: -25 }
+                    ]},
+                    { them: "我觉得我们不合适，你的灵魂太沉重了。", options: [
+                        { text: "可能我们确实不太合适，祝你找到懂你的人。", feedback: "他低下头，手指摩挲着咖啡杯。\"好吧。谢谢你今天的咖啡，还有你的时间。\"他站起来，从包里掏出一张皱巴巴的纸，\"这是我写的诗，送给你，当作纪念。\"你接过纸，上面写着\"致一个沉重的灵魂\"。", favor: 5 },
+                        { text: "我的灵魂沉重？那是因为我负重前行，不像你两手空空。", feedback: "他愣住了，然后苦笑。\"你说得对，我两手空空，但我的心是满的。\"他拍了拍胸口，\"总有一天你会明白的。\"他把背包甩到肩上，准备走。", favor: -15 },
+                        { text: "再见，祝你流浪愉快。别饿死了。", feedback: "他走到门口，回头看了你一眼，挥挥手。\"灵魂不死，诗永恒。\"他推门出去，一阵风吹乱了他的头发。你看到他坐在门口的长椅上，掏出笔记本，开始写诗。", favor: -20 }
+                    ]}
+                ]
+            },
+            {
+                id: 6,
+                name: "昵称：猛男本男",
+                tag: "我练得很壮哦～嘿嘿",
+                avatar: "💪",
+                initialFavorability: 50,
+                intro: "我26岁，健身教练，体脂率8%。每天我都发朋友圈，展示我的自律。你喜欢什么样的男生？壮一点的？嘿嘿。我觉得女生也要锻炼，你看起来有点虚，我可以带你练。我不喜欢太保守的女生，要放得开。嘿嘿，你懂我意思吗？",
+                opening: "他穿了一件紧身背心，肌肉线条一览无余。见面第一件事不是打招呼，而是抬起胳膊给你看他的肱二头肌：“练了三年，怎么样？”",
+                endings: {
+                    high: { title: "双向奔赴的变态", desc: "他觉得你是灵魂伴侣，已经把你照片发到了健身群，配文：'我女神，谁都不许抢。'群友们纷纷回复：'这品味独特''大哥你认真的吗'。他一个一个怼回去：'你们不懂！她骂人的样子超可爱！'你报警三次都没用，最后搬家了。" },
+                    medium: { title: "拉黑警告", desc: "他天天给你发腹肌照，早上七点准时一条，配文'早安，今天也要加油练哦'。你拉黑了他，他又换了号加你，验证消息写着：'你是不是手滑了？我还可以发背肌照。'你换了手机号。" },
+                    low: { title: "解脱", desc: "他觉得你太无聊，自己走了。你松了口气，感谢他的离开。但第二天你在健身房门口看到了他，他正在发传单，上面印着他的腹肌照和一行字：'免费体验课，等你来虐。'你绕道走了。" }
+                },
+                dialogues: [
+                    { them: "你比照片胖一点，但没关系，我可以带你练。", options: [
+                        { text: "谢谢，但我不需要，我对自己挺满意的。", feedback: "他失望地垂下肩膀，像一只泄了气的皮球。\"哦……好吧。\"他低头看了看自己的腹肌，又抬头看你，\"那你觉得我怎么样？满意吗？\"你还没回答，他已经开始展示手臂肌肉。", favor: -10 },
+                        { text: "你先把你的体脂率降到10%以下再来教我。", feedback: "他眼睛一亮，立刻站起来，掀起衣服露出肚子（其实有一层软肉）。\"你看！我体脂率8%！摸一下！\"周围顾客都看过来，你尴尬地想钻地缝。他得意地环顾四周，\"怎么样？我没骗你吧？\"", favor: 15 },
+                        { text: "你该练练嘴，别一开口就惹人烦。", feedback: "他先是一愣，然后拍着桌子大笑起来，笑声大到服务员都来提醒小声点。\"你骂人的样子真可爱！再多骂几句！我健身就喜欢听这种激励的话！\"他凑近你，\"来来来，往这儿骂。\"指着自己的脸。", favor: 25 }
+                    ]},
+                    { them: "你要不要摸摸我的腹肌？很硬的。", options: [
+                        { text: "不用了，我不太习惯肢体接触。", feedback: "他失落地放下手，叹了口气。\"好吧，你错过了一个亿。\"他揉了揉自己的肚子，\"很多人都想摸，我还不给呢。\"他嘟囔着，像个没得到夸奖的小孩。", favor: -10 },
+                        { text: "摸一下收费500，先给钱。", feedback: "他兴奋地掏出钱包，翻了半天只找到50块。\"先付50，剩下的我用健身课抵！\"他把钱塞到你手里，然后掀起衣服，\"来来来，随便摸，摸到就是赚到。\"你看着那张皱巴巴的50块，哭笑不得。", favor: 15 },
+                        { text: "假的吧？你塞了硅胶？", feedback: "他急了，用力拍自己的肚子，发出\"啪啪\"的响声。\"你听！这是真肌肉的声音！\"他抓起你的手想往他肚子上按，你使劲抽回来。\"你要是不信，我带你去健身房，当场做100个俯卧撑给你看！\"他的脸红得像番茄。", favor: 25 }
+                    ]},
+                    { them: "你喜欢什么样的男生？像我这样壮的吗？", options: [
+                        { text: "看性格吧，外表不是最重要的。", feedback: "他不太高兴地撇了撇嘴。\"性格？我性格也很好啊！开朗、阳光、爱运动。\"他掰着手指，\"你看我哪点不好？\"他期待地看着你，像个等待表扬的孩子。", favor: -5 },
+                        { text: "我喜欢安静的男生，比如哑巴。", feedback: "他愣了一下，然后立刻用手捂住嘴，只露出两只眼睛。他用腹语般的声音说：\"这样够安静吗？我可以不说话，只用肌肉交流。\"他比划着各种健身动作，像在演哑剧。", favor: 15 },
+                        { text: "我喜欢女的。你变个性再来。", feedback: "他低头看了看自己，又抬头看你，一脸为难。\"变性？不行，我太man了，变完也不像女的。\"他想了想，突然眼睛一亮，\"那我可以当你闺蜜！帮你拎包、拍照、赶走渣男！\"他拍着胸脯，一副义不容辞的样子。", favor: 30 }
+                    ]},
+                    { them: "我觉得你对我有意思，你一直在看我。", options: [
+                        { text: "没有，你误会了。", feedback: "他皱眉，一脸不信。\"不可能，我第六感很准的。你是不是害羞了？\"他往前凑了凑，\"没关系，我这个人很随和的，你不用不好意思。\"他冲你眨了眨眼，油腻程度拉满。", favor: -10 },
+                        { text: "对，我在看你怎么这么自恋。", feedback: "他哈哈大笑，拍了一下大腿。\"自恋？我这叫自信！健身的人都有自信！\"他站起来转了一圈，\"你看我这身材，不值得自恋吗？\"旁边的顾客都投来奇怪的目光。", favor: 20 },
+                        { text: "我看你是想看看你什么时候走。", feedback: "他嘿嘿一笑，把椅子往你这边挪了挪。\"我不走，我赖上你了。你越赶我，我越兴奋！\"他双手托腮，一脸痴迷地看着你，\"你说，你不是在考验我的毅力？我健身的人最不缺毅力！\"", favor: 25 }
+                    ]},
+                    { them: "我每天发朋友圈展示身材，你看到了吗？", options: [
+                        { text: "看到了，挺好的。", feedback: "他不满意地摇头。\"就'挺好的'？没有别的评价？比如'好帅''好壮''想摸'？\"他掏出手机翻自己的朋友圈，\"你看这条，20个赞呢！\"你看了看，确实20个赞，其中15个是他自己点的。", favor: -5 },
+                        { text: "看到了，只有你自己点赞。", feedback: "他有点尴尬，挠了挠头。\"那是因为别人没眼光！你看到了就是有眼光。\"他凑过来，\"你帮我点个赞呗，就当你支持我健身事业了。\"他眼巴巴地看着你，像在乞讨。", favor: 15 },
+                        { text: "我屏蔽了，太辣眼睛。", feedback: "他伤心地捂住胸口，做出被箭射中的表情。\"你……你怎么能屏蔽？那是我的骄傲！\"他深吸一口气，\"不过你越嫌弃我，我越想征服你！我要练得更壮，让你不得不看！\"他握紧拳头，像在发誓。", favor: 25 }
+                    ]},
+                    { them: "我不喜欢太保守的女生，你放得开吗？", options: [
+                        { text: "我比较慢热，需要时间。", feedback: "他皱眉，不太满意。\"慢热？那不行，我这个人急性子。\"他搓了搓手，\"你能不能热得快一点？我请你喝热水？\"他招手叫服务员，\"来杯热水！烫一点的那种！\"", favor: -10 },
+                        { text: "放得开？我昨天刚和三个男生相亲，你排第四。", feedback: "他急了，差点从椅子上跳起来。\"排第四？那我能不能插队？我体力好，可以一次性把你前三个都比下去！\"他撸起袖子，\"他们叫什么？我去找他们PK！\"你无语地看着他。", favor: 20 },
+                        { text: "放得开？我可以当场后空翻，你接住我。", feedback: "他立刻站起来，张开双臂，一脸期待。\"来！我接得住！摔了我负责！\"他拍了拍胸脯，\"我健身的人，核心力量强，接你十个都没问题！\"你坐着没动，他尴尬地又坐下了。", favor: 15 }
+                    ]},
+                    { them: "你跟我在一起，我可以教你健身，让你身材变好。", options: [
+                        { text: "我更喜欢自己练。", feedback: "他有点失落，但很快又打起精神。\"自己练容易受伤，我专业教练，带你飞！\"他比划着动作，\"你看我这个深蹲标不标准？\"他当场蹲了一个，裤裆差点裂开。", favor: -5 },
+                        { text: "健身？我更喜欢躺着。你能躺着练出腹肌吗？", feedback: "他想了想，突然拍手。\"意念健身！你躺着想我在练，就等于你也在练！\"他闭上眼睛，\"来，跟我一起想象，我们在做卷腹……一个……两个……\"你看着他那副陶醉的样子，忍不住笑出声。", favor: 15 },
+                        { text: "你先把自己的斜方肌练小点吧，太丑了。", feedback: "他摸了摸自己的脖子，一脸困惑。\"斜方肌？那是我的骄傲！很多人还练不出来呢！\"他歪着头，\"你觉得丑？那你帮我按按，按小了我就听你的！\"他把脖子伸过来，你一巴掌把他推回去。", favor: 25 }
+                    ]},
+                    { them: "我觉得我们很般配，都是喜欢运动的人。", options: [
+                        { text: "我不太运动，我喜欢看书。", feedback: "他愣住了，嘴张成O型。\"看书？那不是老年人才干的事吗？\"他挠了挠头，\"你试试运动吧，比看书有意思多了！\"他把自己的健身视频懟到你面前，\"你看，多帅！\"", favor: -10 },
+                        { text: "我喜欢运动？我只喜欢手指运动，比如刷手机。", feedback: "他皱眉，一脸嫌弃。\"刷手机不算运动！那是颓废！\"他一把抢过你的手机，\"我带你做真运动！来，先来20个开合跳！\"你抢回手机，白了他一眼。", favor: 10 },
+                        { text: "不般配，我嫌弃你。", feedback: "他受伤地捂住胸口，做出一副心碎的表情。\"你嫌弃我什么？我可以改！\"他掰着手指，\"身高改不了，肌肉可以练，脸可以整，你说哪样？\"你无语地翻了个白眼。", favor: 20 }
+                    ]},
+                    { them: "你太害羞了，我就喜欢这种的。", options: [
+                        { text: "我没有害羞，只是不太会聊天。", feedback: "他笑了，露出一口不太整齐的牙。\"不会聊天没关系，我会啊！我带你聊！\"他清了清嗓子，\"我们先从健身聊起，你平时做什么运动？\"然后他开始滔滔不绝地讲自己的健身计划。", favor: -5 },
+                        { text: "那你喜欢我什么？我改还不行吗？", feedback: "他想了想，一脸认真。\"喜欢你害羞的样子啊！你要是改了，我就不喜欢了。\"他双手托腮，\"你千万别改，就这样最好！\"他冲你眨眨眼，你起了一身鸡皮疙瘩。", favor: 15 },
+                        { text: "你是不是对所有女生都这么说？这是你的话术模板？", feedback: "他摇头，表情真诚。\"不，我只对好看的这么说。你是最好看的，所以我说得最多！\"他掏出手机，\"你要是不信，我把我之前相亲对象的聊天记录给你看，都是她们追的我！\"你瞥了一眼，全是已读不回。", favor: 20 }
+                    ]},
+                    { them: "我们加个微信吧，以后可以约着一起健身。", options: [
+                        { text: "可以，但我不太聊天。", feedback: "他有点失落，但还是掏出手机。\"不聊天没关系，看朋友圈就行！我每天发健身视频，你看了就当跟我一起练了！\"他把二维码递过来，\"扫吧，我通过快。\"", favor: -10 },
+                        { text: "不加，我怕你半夜给我发腹肌照。", feedback: "他举起手发誓。\"不会！我只发早上。而且我发之前会问你醒没醒！\"他一脸真诚，\"你要是觉得烦，我就发仅你可见，不打扰别人。\"他眨了眨眼，期待地看着你。", favor: 15 },
+                        { text: "不加微信，我们直接去派出所拜把子吧？你当嫌疑人我当报案的。", feedback: "他愣了一秒，然后拍着桌子大笑起来，笑到眼泪都出来了。\"拜把子？行啊！你报案的，我健身的，咱俩组合叫'健案组'！\"他伸出手要跟你击掌，\"以后咱俩联手，抓一个坏人就练一组腹肌！\"你无奈地摇了摇头。", favor: 35 }
+                    ]}
+                ]
+            },
+            {
+                id: 7,
+                name: "昵称：代码敲得不咋样",
+                tag: "但我是个好人",
+                avatar: "👨‍💻",
+                initialFavorability: 40,
+                intro: "我28岁，程序员，写代码的。不加班，但工资也不高。我会做饭，喜欢看老电影，有点社恐。我不修电脑，别问我。我平时就刷刷剧，写写代码，生活很简单。",
+                opening: "他点了两杯美式咖啡，递给过你一杯的时候，手指微微发抖。\"我不太会聊天，你……你别介意。\"他低头抿了一口咖啡，耳根有点红。",
+                endings: {
+                    high: { title: "温暖的开始", desc: "你们加了微信，他第二天真的做了西红柿炒蛋送来，用保温盒装着，还热乎的。你吃了一口，味道居然不错。他坐在旁边紧张地看着你，'怎么样？是不是太咸了？'你摇头，他笑了。后来你们经常一起吃饭、看电影，他话不多，但很踏实。" },
+                    medium: { title: "朋友之上", desc: "你们偶尔聊天，他帮你修好了路由器（虽然他说不会修），你请他喝了杯奶茶。后来他搬家了，离你很远，你们渐渐不再联系。偶尔你会想起那个做西红柿炒蛋的程序员，不知道他现在过得好不好。" },
+                    low: { title: "错过", desc: "你嫌他太普通，他默默删了你的微信。后来你家水管坏了，你想起了他说过'我会修水管'，但你找不到他了。几个月后你在超市碰到他，他身边站着一个女孩，笑着挽着他的胳膊。你假装没看见，绕道走了。" }
+                },
+                dialogues: [
+                    { them: "我点了美式，你要换别的吗？", options: [
+                        { text: "美式挺好，谢谢。", feedback: "他松了口气，肩膀明显放松下来。\"那就好，我怕你喝不惯。\"他低头搅了搅咖啡，又抬头看了你一眼，\"其实我平时也只喝美式，太复杂的点不来。\"他不好意思地笑了笑。", favor: 10 },
+                        { text: "我要拿铁，你去帮我点一下？", feedback: "他有点尴尬，但还是站起来。\"行，你等一下。\"他走到吧台，跟服务员说了半天，又回头问你，\"要加糖吗？\"你摇头。他端着拿铁回来，小心翼翼放在你面前，\"小心烫。\"", favor: -5 },
+                        { text: "我只喝手冲蓝山，你这不行。", feedback: "他愣住了，手悬在半空。\"手……手冲蓝山？\"他挠了挠头，\"这家店好像没有。\"他低头看了看自己的美式，有点失落，\"那……要不我们换个地方？\"你摇头，他更尴尬了。", favor: -20 }
+                    ]},
+                    { them: "我技术一般，但好在不加班。", options: [
+                        { text: "不加班太幸福了。", feedback: "他笑了，眼睛弯成月牙。\"是啊，我们公司文化比较好，到点就走。\"他喝了口咖啡，\"虽然钱少点，但时间多。我可以做饭、看电影、遛弯。\"他掰着手指，像在数自己的幸福清单。", favor: 10 },
+                        { text: "那你工资高吗？", feedback: "他挠了挠头，有点不好意思。\"够花，但存不下多少。\"他低头看了看自己的衣服，\"所以我穿得比较随意，你不介意吧？\"他扯了扯卫衣的袖子，上面有一个小洞。", favor: -10 },
+                        { text: "不加班是因为能力差吧？", feedback: "他愣了一下，然后苦笑。\"可能吧。不过我写的代码没出过线上事故。\"他小声说，\"我觉得质量比数量重要。\"他端起咖啡杯，发现已经凉了，又放下。", favor: -20 }
+                    ]},
+                    { them: "我会做饭，喜欢看老电影。", options: [
+                        { text: "我也喜欢！推荐几部？", feedback: "他眼睛一亮，身体前倾。\"《海上钢琴师》《放牛班的春天》《楚门的世界》！你都看过吗？\"他兴奋地说，\"我家里还有碟片，可以借你。\"他说完又觉得太主动了，不好意思地摸了摸后脑勺。", favor: 15 },
+                        { text: "会做红烧肉吗？", feedback: "他摇头，有点抱歉。\"不会，太复杂了。我会做西红柿炒蛋、青椒肉丝、蛋炒饭。\"他数着手指，\"都是简单的，但味道还行。\"他期待地看着你，\"你想吃的话，我可以学。\"", favor: -5 },
+                        { text: "做饭多浪费时间，点外卖啊。", feedback: "他皱眉，不太认同。\"外卖不健康，而且贵。\"他顿了顿，\"自己做饭省钱，还能控制油盐。\"他看你一眼，\"你不会做饭吗？我可以教你。\"他说完又觉得太唐突，赶紧喝咖啡。", favor: -15 }
+                    ]},
+                    { them: "我不会修电脑，别问我。", options: [
+                        { text: "哈哈，诚实。", feedback: "他不好意思地笑了。\"很多人以为程序员都会修电脑，其实我们只会写代码。\"他挠了挠头，\"上次我自己的电脑蓝屏，我也只能重启。\"他做了个无奈的表情。", favor: 10 },
+                        { text: "那你会修什么？", feedback: "他想了想，认真地说：\"会修自己的心态。遇到bug的时候，我会告诉自己'没关系，先喝杯咖啡'。\"他举起咖啡杯，\"你看，这杯就是我的修复工具。\"他笑了笑，有点自嘲。", favor: -5 },
+                        { text: "程序员不会修电脑？假程序员吧。", feedback: "他有点委屈，声音变小了。\"我是写后端的，不是修电脑的。\"他低头搅了搅咖啡，\"你要修电脑可以去楼下电脑店，老板人很好。\"他不再说话，气氛有点冷。", favor: -20 }
+                    ]},
+                    { them: "我有点社恐，不太会聊天。", options: [
+                        { text: "没关系，慢慢聊。", feedback: "他松了口气，肩膀放松下来。\"谢谢你。\"他顿了顿，\"其实我今天出门前犹豫了很久，差点就不来了。\"他不好意思地笑了笑，\"还好来了，你人挺好的。\"他脸有点红。", favor: 10 },
+                        { text: "那你还来相亲？", feedback: "他低下头，手指绞着衣角。\"家里逼的。我妈说再不找对象就跟我断绝关系。\"他苦笑，\"我也不想让她担心，就出来试试。\"他抬头看你，\"你呢？也是被逼的吗？\"", favor: -10 },
+                        { text: "社恐还出来？回去宅着吧。", feedback: "他愣住了，嘴张了张又闭上。他拿起包，但又放下。\"你说得对，我可能不该出来。\"他站起来，又坐下，\"那……那我把咖啡喝完再走？\"你无语地看着他。", favor: -25 }
+                    ]},
+                    { them: "你喜欢吃什么？我下次可以做。", options: [
+                        { text: "西红柿炒蛋就行。", feedback: "他高兴地点头，眼睛亮晶晶的。\"这个我会！我做得还不错。\"他比划着，\"我一般放三个鸡蛋，两个西红柿，一点糖。\"他舔了舔嘴唇，\"说得我都饿了。\"", favor: 10 },
+                        { text: "佛跳墙会吗？", feedback: "他瞪大了眼，一脸震惊。\"佛……佛跳墙？那是什么？\"他掏出手机搜了一下，然后摇头，\"这个太复杂了，我不会。你会吗？\"他期待地看着你，你摇头，他松了口气。", favor: -15 },
+                        { text: "你做的我不敢吃。", feedback: "他受伤地低下头，手指无意识地敲着桌面。\"我做的真的能吃，没毒。\"他小声说，\"我室友吃过，说还行。\"他抬头看你，\"你要是不信，我下次带来给你尝尝？\"你还没回答，他已经开始计划了。", favor: -20 }
+                    ]},
+                    { them: "我平时就刷刷剧，写写代码。", options: [
+                        { text: "挺充实的。", feedback: "他点头，笑了。\"是啊，我觉得这样挺好的。不用社交，不用应酬。\"他喝了口咖啡，\"你可能觉得无聊，但我挺享受的。\"他看着窗外，眼神平静。", favor: 5 },
+                        { text: "写什么代码？能赚钱吗？", feedback: "他挠了挠头。\"就是普通的业务代码，够吃饭。\"他顿了顿，\"我也想做个大项目赚大钱，但没那个能力。\"他自嘲地笑了笑，\"我就适合当个螺丝钉。\"", favor: -10 },
+                        { text: "无聊的人生。", feedback: "他沉默了，低头看着咖啡杯。过了十几秒，他轻声说：\"可能吧。但我过得挺开心的。\"他抬头看你，\"你觉得什么样的人生不无聊？\"你还没回答，他又说，\"算了，不用回答。\"", favor: -20 }
+                    ]},
+                    { them: "你觉得我怎么样？", options: [
+                        { text: "挺真实的，不错。", feedback: "他脸红了，耳朵也红了。\"谢……谢谢。\"他低头搅咖啡，不敢看你。\"其实我很普通，没什么优点。\"他顿了顿，\"但你这么说，我很高兴。\"他嘴角微微上扬。", favor: 15 },
+                        { text: "有点矮？", feedback: "他愣了一下，低头看了看自己。\"嗯，是有点矮。172，穿鞋173。\"他叹了口气，\"我妈说就是因为矮才找不到对象。\"他苦笑，\"你觉得呢？\"你有点尴尬。", favor: -10 },
+                        { text: "穷就一个字。", feedback: "他愣住了，嘴张了张又闭上。他拿起包，站起来，又坐下。\"你说得对，我是挺穷的。\"他放下包，\"但我会努力的。不打扰你了。\"他起身要走，你叫住他。", favor: -25 }
+                    ]},
+                    { them: "我们加个微信？我不发广告。", options: [
+                        { text: "好，我扫你。", feedback: "他高兴地掏出手机，打开二维码，双手递过来。\"谢谢。我……我平时不怎么发朋友圈，你别介意。\"他加了你之后，立刻把你的备注改成\"相亲-西红柿炒蛋\"。你瞥了一眼，笑了。", favor: 10 },
+                        { text: "先发个红包看看诚意。", feedback: "他犹豫了一下，然后真的发了一个红包。你点开，1块钱。他不好意思地说：\"我微信里没钱了，就剩这些。\"他挠了挠头，\"下次补上？\"你无语。", favor: -15 },
+                        { text: "不加，你太普通了。", feedback: "他愣住了，慢慢收回手机。\"好吧。对不起，打扰了。\"他站起来，鞠了个躬，\"那……那我先走了。咖啡我请。\"他走到吧台付了钱，头也不回地走了。", favor: -20 }
+                    ]},
+                    { them: "今天谢谢你，和你聊天很轻松。", options: [
+                        { text: "我也是，下次再聊。", feedback: "他笑了，眼睛弯成月牙。\"好，下次我请你吃饭。西红柿炒蛋。\"他站起来，伸出手想跟你握手，又缩回去，\"那……那我先走了，你注意安全。\"他走到门口，回头看了你一眼，笑了。", favor: 10 },
+                        { text: "那你请我吃顿饭吧。", feedback: "他点头，\"行。你想吃什么？不要太贵就行。\"他掏出手机看余额，\"周末？我发工资了。\"他期待地看着你，像个等待肯定的小孩。", favor: -5 },
+                        { text: "其实我一直在忍耐。", feedback: "他愣住了，笑容凝固在脸上。\"忍……忍耐？\"他低下头，\"对不起，我话太多了。\"他拿起包，\"我以后不会打扰你了。\"他快步走出咖啡店，你透过玻璃看到他蹲在门口，好像很难过。", favor: -25 }
+                    ]}
+                ]
+            },
+            {
+                id: 8,
+                name: "昵称：梗比人红",
+                tag: "段子手，在线征婚",
+                avatar: "🎤",
+                initialFavorability: 20,
+                intro: "我28岁，业余脱口秀演员。虽然没上过开放麦，但我有天赋！我的人生座右铭是：只要我不尴尬，尴尬的就是别人。我收入不稳定，但开心最重要。我以后想开一个自己的脱口秀俱乐部。",
+                opening: "他坐下来第一句话就是：\"你比照片好看，是不是P图没加载完？\"然后他自己先笑起来了。",
+                endings: {
+                    high: { title: "笑友", desc: "你们成了朋友，他每次写了新段子都先讲给你听。你成了他的第一个观众，也是最毒舌的评委。'这个不好笑，重写。'他会认真改三遍。后来他真的上了开放麦，你在台下笑了，他也笑了。散场后他请你吃烧烤，'谢谢你，没有你我不会站上去。'你举起酒杯，'加油，未来的脱口秀之星。'" },
+                    medium: { title: "观众", desc: "你们偶尔聊天，他后来真的上了开放麦，你去看了他的演出。他在台上讲了一个关于你的段子，台下笑了，你也笑了。散场后他请你喝咖啡，'谢谢你来。'你说'加油'。后来你们渐渐不再联系，但你会偶尔刷到他的朋友圈，他还在坚持讲脱口秀。" },
+                    low: { title: "散场", desc: "觉得他太吵，他觉得你不懂幽默。你们互删了微信。几个月后你在一个脱口秀视频里看到了他，他在台上说：'我以前相亲过一个女生，她说我话多像噪音。我觉得她说得对，所以我改行讲了脱口秀。'台下哄堂大笑。你关掉了视频。" }
+                },
+                dialogues: [
+                    { them: "你比照片好看，是不是P图没加载完？", options: [
+                        { text: "你比照片搞笑。", feedback: "他哈哈大笑，拍了一下桌子。\"这个梗好！我喜欢！\"他擦了擦笑出来的眼泪，\"看来你也是幽默的人，我们合得来。\"他冲你竖起大拇指。", favor: 10 },
+                        { text: "你段子太冷了。", feedback: "他假装伤心，捂住胸口。\"你伤害了我。我本来想用这个梗开场，结果被你反杀了。\"他叹了口气，\"看来我还要再练练。\"他喝了一口咖啡，表情委屈。", favor: -10 },
+                        { text: "我照片是照骗，本人是原图。", feedback: "他愣了一秒，然后拍手大笑。\"这个梗好！你赢了！\"他伸出拳头要跟你碰，\"来来来，我们组个组合，叫'照骗原图'。\"你笑着碰了一下。", favor: -5 }
+                    ]},
+                    { them: "我没上过开放麦，但我有天赋。", options: [
+                        { text: "加油，以后上台我叫朋友去看。", feedback: "他感动地点头，眼睛亮晶晶的。\"真的？那我要好好写了。\"他掏出手机备忘录，上面密密麻麻写满了段子，\"你看，我每天都在积累素材。\"你翻了翻，有几个还挺好笑的。", favor: 10 },
+                        { text: "天赋？你先把今天的咖啡钱讲出来。", feedback: "他愣了一下，然后清了清嗓子。\"咳嗽，各位观众，今天我要讲一个关于咖啡的故事……\"他讲了30秒，你一点没笑。他尴尬地挠头，\"看来这个段子不行，我改天再练。\"", favor: -10 },
+                        { text: "没上过台的天赋等于没有天赋。", feedback: "他有点受伤，低头看着咖啡杯。\"你说得对，天赋需要舞台证明。\"他顿了顿，\"我下次开放麦一定去，你来看吗？\"他期待地看着你，你还没回答，他又说，\"算了，我可能紧张得说不出来。\"", favor: -20 }
+                    ]},
+                    { them: "我最大的优点是不冷场，因为我话多。", options: [
+                        { text: "话多不怕，有趣就行。", feedback: "他笑了，露出一口白牙。\"谢谢！我觉得我挺有趣的，虽然别人不一定这么觉得。\"他喝了口咖啡，\"你今天觉得我有趣吗？\"他期待地看着你。", favor: 10 },
+                        { text: "话多等于噪音。", feedback: "他假装捂住耳朵，做出痛苦的表情。\"你伤到我了。我要把我的段子都删了。\"他拿起手机，假装删除，又放下，\"算了，我舍不得。\"他冲你吐了吐舌头。", favor: -15 },
+                        { text: "那你能不能安静一分钟？我试试。", feedback: "他立刻闭嘴，双手捂住嘴巴。你看着手机计时，他憋了一分钟，脸都红了。时间一到，他长出一口气，\"我输了！我从来没安静过这么久！\"他大口喝水。", favor: -20 }
+                    ]},
+                    { them: "你平时看脱口秀吗？喜欢谁？", options: [
+                        { text: "偶尔看，喜欢周奇墨。", feedback: "他兴奋地拍手。\"我也喜欢！他的观察式喜剧太绝了！\"他往前凑了凑，\"你觉得我像他吗？\"你摇头，他有点失望，\"也是，我差远了。\"他自嘲地笑了笑。", favor: 10 },
+                        { text: "不喜欢，我觉得都是尬聊。", feedback: "他受伤地捂住胸口。\"你……你伤害了我对喜剧的热爱。\"他叹了口气，\"那我以后不讲给你听了。\"他低头喝咖啡，情绪低落。", favor: -15 },
+                        { text: "我只喜欢看人摔倒的视频。", feedback: "他愣了一下，然后哈哈大笑。\"那个我也喜欢！\"他掏出手机，\"你看，我收藏了好多。\"他给你看一个视频，一个人踩到香蕉皮滑倒。你笑了，他也笑了，\"看来我们笑点一致。\"", favor: -20 }
+                    ]},
+                    { them: "我最近写了一个段子，关于相亲的，要听吗？", options: [
+                        { text: "好啊，洗耳恭听。", feedback: "他清了清嗓子，站起来，假装手里有话筒。\"各位观众，今天我要讲一个相亲的故事……\"他讲了三分钟，你笑了两次。他讲完后紧张地看着你，\"怎么样？好笑吗？\"你点头，他松了口气。", favor: 10 },
+                        { text: "别讲了，我怕冷。", feedback: "他假装打了个哆嗦。\"确实挺冷的，我自己都觉得冷。\"他挠了挠头，\"我再改改，下次讲给你听。\"他把段子记在备忘录里，表情认真。", favor: -10 },
+                        { text: "你讲完我讲一个更冷的。", feedback: "他眼睛一亮，拍手。\"来battle！\"他讲完他的段子，你讲了一个冷笑话，他笑得前仰后合。\"你赢了！你这个太冷了！\"他擦眼泪，\"我们是不是有病？\"", favor: -5 }
+                    ]},
+                    { them: "你觉得我长得像哪个明星？", options: [
+                        { text: "像你自己，独一无二。", feedback: "他愣了一下，然后笑了。\"这个回答好，我喜欢。\"他摸了摸自己的脸，\"虽然不帅，但是有辨识度，对吧？\"他冲你眨了眨眼，有点自恋。", favor: 10 },
+                        { text: "像那谁……叫不上名字。", feedback: "他皱眉，追问：\"到底像谁？你说，我不生气。\"你随便说了个名字，他掏出手机搜了一下，然后叹气，\"不像，我比他丑多了。\"他苦笑。", favor: -5 },
+                        { text: "像表情包。", feedback: "他愣了一秒，然后哈哈大笑。\"你赢了！我确实像表情包。\"他做了一个鬼脸，\"你看，这个像不像'地铁老人看手机'？\"你笑出了声。", favor: -20 }
+                    ]},
+                    { them: "我收入不稳定，但开心最重要。", options: [
+                        { text: "开心确实重要。", feedback: "他点头，表情认真。\"钱可以再赚，开心买不到。\"他喝了口咖啡，\"你可能觉得我太理想主义，但我就是这样的人。\"他看着窗外，眼神坚定。", favor: 5 },
+                        { text: "没钱怎么开心？", feedback: "他叹了口气，\"也是。有时候交完房租，只剩几百块，确实不开心。\"他低头搅咖啡，\"但我觉得，穷有穷的活法。\"他抬头看你，\"你不觉得吗？\"", favor: -15 },
+                        { text: "那你去找个让你开心的富婆吧。", feedback: "他愣了一下，然后苦笑。\"富婆看不上我。我连自己都养不活。\"他自嘲地笑了笑，\"我还是靠自己吧，穷开心。\"他端起咖啡杯，一饮而尽。", favor: -25 }
+                    ]},
+                    { them: "我以后想开一个自己的脱口秀俱乐部。", options: [
+                        { text: "有梦想很棒，支持你。", feedback: "他眼睛发光，身体前倾。\"真的吗？你觉得我能行吗？\"他挠了挠头，\"我还差得远，先攒钱。\"他掰着手指算，\"至少需要50万，我现在有5000。\"他苦笑。", favor: 10 },
+                        { text: "你有钱吗？开俱乐部很贵。", feedback: "他低下头，声音变小。\"没有。所以还在做梦。\"他叹了口气，\"可能这辈子都开不了。\"他喝了一口咖啡，表情落寞。", favor: -10 },
+                        { text: "你先从公园露天讲起吧。", feedback: "他愣了一下，然后笑了。\"你说得对，我可以在公园免费讲，练练胆。\"他掏出手机记下来，\"这个主意好，谢谢！\"他冲你竖起大拇指。", favor: -15 }
+                    ]},
+                    { them: "我觉得我们挺聊得来的。", options: [
+                        { text: "我也觉得，和你聊天不累。", feedback: "他笑了，露出白牙。\"谢谢！你是我遇到的第一个不嫌我话多的人。\"他顿了顿，\"那我们以后可以多聊？\"他期待地看着你，像个等待表扬的孩子。", favor: 10 },
+                        { text: "那是因为你话多，我都没机会说。", feedback: "他愣了一下，然后捂住嘴。\"对不起，我又话多了。\"他做了个拉拉链的动作，\"你说，我听着。\"他双手交叉放在桌上，认真地看着你。", favor: -10 },
+                        { text: "聊得来？你只是需要一个听众吧。", feedback: "他愣住了，嘴张了张又闭上。他低下头，\"可能吧。我确实喜欢说话，不太会听。\"他顿了顿，\"对不起，让你觉得不舒服了。\"他情绪低落。", favor: -20 }
+                    ]},
+                    { them: "加个微信吧，以后我给你讲新段子。", options: [
+                        { text: "好，期待你的段子。", feedback: "他高兴地掏出手机，打开二维码。\"谢谢！我写好了第一个发给你。\"他加了你之后，立刻发来一个段子，你看了笑了。他发来一个开心的表情包。", favor: 10 },
+                        { text: "可以，但别发60秒语音。", feedback: "他举起手发誓。\"不会！我发文字，或者段子截图。\"他顿了顿，\"语音我自己都懒得听。\"他笑了笑，加了你。", favor: -5 },
+                        { text: "不加，我怕你把我写成段子。", feedback: "他愣了一秒，然后坏笑。\"已经写了。\"他掏出手机给你看一个备忘录，标题是\"相亲日记\"，里面写了你们的对话。你看了有点生气，他赶紧删了，\"开玩笑的，我这就删。\"", favor: -20 }
+                    ]}
+                ]
+            },
+            {
+                id: 9,
+                name: "昵称：搬砖也要优雅",
+                tag: "踏实boy，在线征婚",
+                avatar: "👷",
+                initialFavorability: 40,
+                intro: "我28岁，工地的测量员。不抽烟不喝酒，每个月能存一半工资。家里催婚催得紧，但我还是想找个聊得来的人。我没有什么浪漫细胞，但我可以帮你修水管、搬重物、打蟑螂。",
+                opening: "他坐下来后，从口袋里拿出一朵太阳花，递给你：\"给你，不是玫瑰，但这个好养。\"",
+                endings: {
+                    high: { title: "踏实的开始", desc: "你们加了微信，他周末真的约你去逛公园，还带了自己做的三明治（虽然有点丑，但味道不错）。你们坐在湖边晒太阳，他话不多，但会帮你挡太阳。后来你家水管坏了，他半小时就赶到了，修好之后满手油污，你递给他一瓶可乐，他笑了。你们慢慢走到了一起。" },
+                    medium: { title: "普通朋友", desc: "你们偶尔聊天，他帮你修过一次水管，你请他喝了杯奶茶。后来他搬家了，离你很远，你们渐渐不再联系。偶尔你会想起那个憨厚的建筑工，不知道他有没有买到自己的房子。" },
+                    low: { title: "错过", desc: "你嫌他太土，他默默删了你的微信。后来你家水管坏了，你找维修工花了两百块，你想起了他说过'我会修水管'。几个月后你在超市碰到他，他身边站着一个女孩，笑着挽着他的胳膊。你假装没看见，绕道走了。" }
+                },
+                dialogues: [
+                    { them: "给你，不是玫瑰，但这个好养。", options: [
+                        { text: "谢谢，很漂亮，我喜欢。", feedback: "他憨憨地笑了，露出一口不太整齐的牙。\"真的吗？我还怕你觉得寒酸。\"他挠了挠头，\"花店老板说这个好活，不用怎么浇水。\"他紧张地看着你，像在等老师打分。", favor: 15 },
+                        { text: "太阳花？玫瑰都舍不得买吗？", feedback: "他尴尬地低下头，把花缩回去。\"不是舍不得，是……玫瑰会谢，这个能开好久。\"他小声说，\"对不起，我下次买玫瑰。\"他太阳花放在桌上，手指无意识地搓着花瓣。", favor: -10 },
+                        { text: "这花是你路边捡的吧？", feedback: "他脸红了，急得额头冒汗。\"不是！我买的，真的！\"他从口袋里掏出一张皱巴巴的小票，\"你看，花店买的，8块钱。\"你瞥了一眼，他不好意思地收回去。", favor: -20 }
+                    ]},
+                    { them: "我是工地的测量员，每天和钢筋混凝土打交道。", options: [
+                        { text: "挺辛苦的，注意安全。", feedback: "他感动地点头，眼眶有点红。\"谢谢。工地上确实危险，但我很小心。\"他拍了拍自己的安全帽（他居然带来了），\"你看，我每天都戴。\"他笑了笑，把帽子放回包里。", favor: 10 },
+                        { text: "那你的手一定很粗糙吧？", feedback: "他低头看了看自己的手，手背上有老茧和一道小伤疤。\"嗯，是有点糙。不过不影响干活。\"他把手缩到桌下，\"你是不是嫌弃？\"他小心翼翼地看着你。", favor: -5 },
+                        { text: "搬砖的？难怪这么黑。", feedback: "他愣住了，低头看了看自己的手臂。\"嗯，天天晒太阳，是挺黑的。\"他顿了顿，\"我妈说黑一点健康。\"他苦笑，\"你是不是不喜欢黑的？\"你有点尴尬。", favor: -20 }
+                    ]},
+                    { them: "我不太会说话，但做事靠谱。", options: [
+                        { text: "靠谱比会说重要。", feedback: "他笑了，眼睛弯成月牙。\"谢谢你。我确实不会说漂亮话，但我答应的事一定做到。\"他拍了拍胸脯，\"你要是有啥需要帮忙的，尽管叫我。\"他眼神真诚。", favor: 10 },
+                        { text: "那你证明一下？先把今天的单买了。", feedback: "他立刻站起来，掏出钱包。\"行，我买。\"他走到吧台，又回头问你，\"你还要点什么吗？\"你摇头。他付了钱回来，有点心疼地看了看钱包。", favor: -5 },
+                        { text: "靠谱的人不会来相亲。", feedback: "他愣住了，嘴张了张又闭上。他低下头，手指绞着衣角。\"你说得对，我可能不太靠谱。\"他站起来，\"对不起，打扰了。\"你赶紧拉住他。", favor: -25 }
+                    ]},
+                    { them: "不抽烟不喝酒，每个月能存一半工资。", options: [
+                        { text: "会过日子，挺好的。", feedback: "他不好意思地挠头。\"没啥本事，只能省着点。\"他掰着手指算，\"房租1500，吃饭1000，剩下的存起来。\"他笑了笑，\"我想存钱买个小的二手房。\"他眼里有光。", favor: 10 },
+                        { text: "存一半？那你工资多少？", feedback: "他犹豫了一下，小声说：\"八千。到手七千多。\"他低头看咖啡杯，\"是不是太少了？\"他紧张地看着你，像在等审判。", favor: -10 },
+                        { text: "存钱干嘛？买房吗？买得起吗？", feedback: "他沉默了，手指无意识地敲着桌面。\"买不起，但能存一点是一点。\"他叹了口气，\"总比月光强。\"他端起咖啡杯，发现已经凉了，又放下。", favor: -20 }
+                    ]},
+                    { them: "家里催婚催得紧，但我还是想找个聊得来的人。", options: [
+                        { text: "慢慢来，总会遇到的。", feedback: "他点头，表情放松了一些。\"嗯，我也是这么想的。\"他喝了口咖啡，\"我妈天天打电话催，我都不敢接了。\"他苦笑，\"你呢？也被催吗？\"", favor: 10 },
+                        { text: "催婚？你自己没主见吗？", feedback: "他低下头，手指绞着衣角。\"有主见，但也不想让爸妈操心。\"他顿了顿，\"他们说再不结婚就老了，我觉得他们说得也有道理。\"他叹气。", favor: -15 },
+                        { text: "那你先和你爸妈聊聊，别来找我。", feedback: "他愣住了，嘴张了张又闭上。他拿起包，站起来，又坐下。\"对不起，我不该说这些。\"他低头，\"那我……不打扰你了。\"你赶紧解释不是那个意思。", favor: -25 }
+                    ]},
+                    { them: "我没有什么浪漫细胞，但我可以帮你修水管、搬重物、打蟑螂。", options: [
+                        { text: "这些比浪漫实用多了。", feedback: "他笑了，眼睛亮晶晶的。\"真的吗？我以为女生都喜欢浪漫。\"他挠了挠头，\"我不会送花、不会写诗，只会干体力活。\"他自嘲地笑了笑。", favor: 10 },
+                        { text: "打蟑螂？我自己也会。", feedback: "他有点失望，但很快又打起精神。\"那我可以帮你搬东西！你搬家的时候叫我，我有力气。\"他弯起手臂，展示并不明显的肌肉。", favor: -5 },
+                        { text: "就这？我还以为你会开挖掘机。", feedback: "他愣了一下，然后认真地说：\"挖掘机我也会，但我没证。工地上开过几次，师傅教的。\"他比划着操作杆，\"要不要我表演给你看？\"你赶紧摇头。", favor: -15 }
+                    ]},
+                    { them: "如果你不嫌弃，我们可以慢慢了解。", options: [
+                        { text: "不嫌弃，慢慢来。", feedback: "他松了口气，肩膀放松下来。\"谢谢你。我条件不好，怕你嫌弃。\"他顿了顿，\"我会努力的。\"他握紧拳头，像在给自己打气。", favor: 10 },
+                        { text: "嫌弃？那要看你的表现了。", feedback: "他紧张地坐直，手指敲着桌面。\"我……我会好好表现的。\"他想了想，\"我明天给你带早饭？你喜欢吃什么？\"他掏出手机准备记。", favor: -10 },
+                        { text: "嫌弃，下一个。", feedback: "他愣住了，慢慢低下头。他拿起包，站起来，鞠了个躬。\"对不起，打扰了。\"他走到吧台，对服务员说\"那桌我请\"，然后头也不回地走了。你有点后悔。", favor: -30 }
+                    ]},
+                    { them: "你平时喜欢做什么？我周末有空。", options: [
+                        { text: "看电影、逛公园都可以。", feedback: "他高兴地点头。\"我也喜欢逛公园！免费的，还能晒太阳。\"他笑了，\"那周末一起去？我知道一个公园，很大，还有湖。\"他期待地看着你。", favor: 10 },
+                        { text: "喜欢花钱，你请得起吗？", feedback: "他摸了摸口袋，有点为难。\"我……我请不起贵的，但便宜的可以。\"他顿了顿，\"你想去商场吗？我可以陪你逛，不买东西。\"他不好意思地笑了笑。", favor: -15 },
+                        { text: "喜欢在家躺着，你别来打扰。", feedback: "他愣住了，然后点头。\"好，我不打扰你。\"他低头喝咖啡，不再说话。气氛有点冷。", favor: -20 }
+                    ]},
+                    { them: "我没什么文化，但我会努力对你好。", options: [
+                        { text: "人品比学历重要。", feedback: "他眼眶有点红，吸了吸鼻子。\"谢谢你。我学历不高，高中毕业就出来打工了。\"他低头，\"但我不会偷不会抢，靠力气吃饭。\"他抬头看你，眼神真诚。", favor: 10 },
+                        { text: "没文化？那你初中毕业了吗？", feedback: "他低下头，声音变小。\"高中毕业，没考上大学。\"他顿了顿，\"是不是觉得我不配？\"他紧张地看着你，手指绞着衣角。", favor: -15 },
+                        { text: "对你好？拿什么对你好？工资卡？", feedback: "他愣住了，然后慢慢低下头。\"你说得对，我没什么能给你的。\"他站起来，\"对不起，我走了。\"你赶紧拉住他，说你不是那个意思。", favor: -25 }
+                    ]},
+                    { them: "今天谢谢你愿意和我聊天，我很开心。", options: [
+                        { text: "也是，你人很好。", feedback: "他笑了，眼睛弯成月牙，憨厚的样子让你心头一暖。\"那……那我们还能再聊吗？\"他期待地看着你，像个等待答案的孩子。你点头，他高兴得差点跳起来。", favor: 15 },
+                        { text: "开心？那下次你请我吃大餐。", feedback: "他点头，掏出手机看余额。\"行。你想吃什么？不要太贵就行。\"他算了算，\"下周末我发工资，请你吃火锅？\"他期待地看着你。", favor: -5 },
+                        { text: "其实我一直在忍耐。", feedback: "他愣住了，笑容凝固在脸上。\"忍……忍耐？\"他低下头，\"对不起，我太土了，让你不舒服。\"他拿起包，\"我以后不打扰你了。\"他快步走出咖啡店，你透过玻璃看到他蹲在门口，好像很难过。", favor: -25 }
+                    ]}
+                ]
+            }
+        ];
+
+        let currentCharacter = null;
+        let currentDialogueIndex = 0;
+        let currentCharacterIndex = 0;
+        let characterOrder = [];
+        let favorability = 0;
+        let chatHistory = [];
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function getRandomSubtitle() {
+            return SUBTITLES[Math.floor(Math.random() * SUBTITLES.length)];
+        }
+
+        function getRandomStats() {
+            return Math.floor(Math.random() * (50000 - 5000) + 5000);
+        }
+
+        function init() {
+            characterOrder = [...Array(CHARACTERS.length).keys()];
+            for (let i = characterOrder.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [characterOrder[i], characterOrder[j]] = [characterOrder[j], characterOrder[i]];
+            }
+            currentCharacterIndex = 0;
+            document.getElementById('subtitle').textContent = getRandomSubtitle();
+            document.getElementById('people-count').textContent = getRandomStats().toLocaleString();
+        }
+
+        function startGame() {
+            currentCharacter = CHARACTERS[characterOrder[currentCharacterIndex]];
+            currentDialogueIndex = 0;
+            favorability = currentCharacter.initialFavorability !== undefined ? currentCharacter.initialFavorability : 40;
+            chatHistory = [];
+            
+            document.getElementById('character-avatar').textContent = currentCharacter.avatar;
+            document.getElementById('character-name').textContent = currentCharacter.name;
+            document.getElementById('character-tag').textContent = currentCharacter.tag;
+            document.getElementById('intro-text').textContent = currentCharacter.intro;
+            
+            showScreen('match-screen');
+        }
+
+        function rerollCharacter() {
+            currentCharacterIndex = (currentCharacterIndex + 1) % CHARACTERS.length;
+            currentCharacter = CHARACTERS[characterOrder[currentCharacterIndex]];
+            currentDialogueIndex = 0;
+            favorability = currentCharacter.initialFavorability !== undefined ? currentCharacter.initialFavorability : 40;
+            chatHistory = [];
+            
+            document.getElementById('character-avatar').textContent = currentCharacter.avatar;
+            document.getElementById('character-name').textContent = currentCharacter.name;
+            document.getElementById('character-tag').textContent = currentCharacter.tag;
+            document.getElementById('intro-text').textContent = currentCharacter.intro;
+            
+            showToast('已更换相亲对象！');
+        }
+
+        function showIntro() {
+            document.getElementById('intro-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('intro-modal').classList.remove('active');
+        }
+
+        function startChat() {
+            document.getElementById('chat-avatar').textContent = currentCharacter.avatar;
+            document.getElementById('chat-name').textContent = currentCharacter.name;
+            updateFavorabilityDisplay();
+            
+            chatHistory = [];
+            addSystemMessage(currentCharacter.opening);
+            showDialogue();
+            showScreen('chat-screen');
+        }
+
+        function updateFavorabilityDisplay() {
+            const el = document.getElementById('favorability');
+            const sign = favorability >= 0 ? '+' : '';
+            el.textContent = `好感度: ${sign}${favorability}`;
+            el.className = 'favorability ' + (favorability >= 0 ? 'positive' : 'negative');
+            el.classList.add('changed');
+            setTimeout(() => el.classList.remove('changed'), 300);
+        }
+
+        function addSystemMessage(text) {
+            chatHistory.push({ type: 'system', text });
+            renderChatHistory();
+        }
+
+        function addTheirMessage(text) {
+            chatHistory.push({ type: 'them', text });
+            renderChatHistory();
+        }
+
+        function addYourMessage(text) {
+            chatHistory.push({ type: 'you', text });
+            renderChatHistory();
+        }
+
+        function renderChatHistory() {
+            const container = document.getElementById('chat-history');
+            container.innerHTML = chatHistory.map(msg => {
+                const label = msg.type === 'system' ? '' : (msg.type === 'them' ? '对方' : '你');
+                return `<div class="message ${msg.type}">
+                    ${label ? `<div class="message-label">${label}</div>` : ''}
+                    ${msg.text}
+                </div>`;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+            
+            const progress = (currentDialogueIndex / currentCharacter.dialogues.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        function showDialogue() {
+            if (currentDialogueIndex >= currentCharacter.dialogues.length) {
+                showEnding();
+                return;
+            }
+
+            const dialogue = currentCharacter.dialogues[currentDialogueIndex];
+            addTheirMessage(dialogue.them);
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = dialogue.options.map((opt, i) => 
+                `<button class="option-btn" onclick="chooseOption(${i})">${opt.text}</button>`
+            ).join('');
+        }
+
+        function chooseOption(optionIndex) {
+            const dialogue = currentCharacter.dialogues[currentDialogueIndex];
+            const option = dialogue.options[optionIndex];
+            
+            addYourMessage(option.text);
+            favorability = Math.max(-100, Math.min(100, favorability + option.favor));
+            updateFavorabilityDisplay();
+            
+            document.getElementById('options').innerHTML = '';
+            
+            if (option.feedback) {
+                chatHistory.push({ type: 'system', text: option.feedback });
+                renderChatHistory();
+            }
+            
+            currentDialogueIndex++;
+            
+            setTimeout(() => {
+                if (currentDialogueIndex < currentCharacter.dialogues.length) {
+                    showDialogue();
+                } else {
+                    showEnding();
+                }
+            }, 1500);
+        }
+
+        function showEnding() {
+            let ending;
+            if (favorability >= 60) {
+                ending = currentCharacter.endings.high;
+            } else if (favorability <= -21) {
+                ending = currentCharacter.endings.low;
+            } else {
+                ending = currentCharacter.endings.medium;
+            }
+
+            document.getElementById('ending-title').textContent = ending.title;
+            document.getElementById('ending-desc').textContent = ending.desc;
+            document.getElementById('final-favorability').textContent = (favorability >= 0 ? '+' : '') + favorability;
+            document.getElementById('final-favorability').className = favorability >= 0 ? 'positive' : 'negative';
+
+            document.getElementById('share-avatar').textContent = currentCharacter.avatar;
+            document.getElementById('share-name').textContent = currentCharacter.name;
+            document.getElementById('share-ending').textContent = ending.title;
+            document.getElementById('share-desc').textContent = ending.desc;
+            document.getElementById('share-tagline').textContent = SHARE_TAGS[Math.floor(Math.random() * SHARE_TAGS.length)];
+
+            saveToHistory(ending.title);
+            showScreen('ending-screen');
+        }
+
+        function saveToHistory(endingTitle) {
+            const history = JSON.parse(localStorage.getItem('相亲历史') || '[]');
+            history.unshift({
+                id: Date.now(),
+                characterId: currentCharacter.id,
+                characterName: currentCharacter.name,
+                characterAvatar: currentCharacter.avatar,
+                favorability: favorability,
+                ending: endingTitle,
+                chatHistory: chatHistory,
+                time: new Date().toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            });
+            localStorage.setItem('相亲历史', JSON.stringify(history.slice(0, 50)));
+        }
+
+        function copyShareCard() {
+            const card = document.getElementById('share-card');
+            const text = `
+《相亲模拟器》
+${currentCharacter.avatar} ${currentCharacter.name}
+最终好感度: ${favorability >= 0 ? '+' : ''}${favorability}
+结局: ${document.getElementById('ending-title').textContent}
+${document.getElementById('ending-desc').textContent}
+${document.getElementById('share-tagline').textContent}
+扫码开始你的抽象相亲
+            `.trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('复制成功！快去分享给闺蜜吧～');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function showHistoryList() {
+            const history = JSON.parse(localStorage.getItem('相亲历史') || '[]');
+            const container = document.getElementById('history-list');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<div class="empty-state">还没有相亲记录<br>快去开始你的第一次相亲吧！</div>';
+            } else {
+                container.innerHTML = history.map(item => `
+                    <div class="history-item" onclick="showHistoryDetail(${item.id})">
+                        <div class="history-item-header">
+                            <span class="history-time">${item.time}</span>
+                            <span class="history-favorability ${item.favorability >= 0 ? 'positive' : 'negative'}">${item.favorability >= 0 ? '+' : ''}${item.favorability}</span>
+                        </div>
+                        <div>${item.characterAvatar} ${item.characterName}</div>
+                        <div class="history-ending">${item.ending}</div>
+                    </div>
+                `).join('');
+            }
+            
+            showScreen('history-list-screen');
+        }
+
+        function showHistoryDetail(id) {
+            const history = JSON.parse(localStorage.getItem('相亲历史') || '[]');
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            document.getElementById('detail-header').innerHTML = `
+                <div class="detail-avatar">${item.characterAvatar}</div>
+                <div class="detail-info">
+                    <div>${item.characterName}</div>
+                    <div class="detail-ending">${item.ending}</div>
+                    <div class="favorability ${item.favorability >= 0 ? 'positive' : 'negative'}">好感度: ${item.favorability >= 0 ? '+' : ''}${item.favorability}</div>
+                </div>
+            `;
+
+            const chatContainer = document.getElementById('detail-chat');
+            chatContainer.innerHTML = item.chatHistory.map(msg => {
+                const label = msg.type === 'system' ? '' : (msg.type === 'them' ? '对方' : '你');
+                return `<div class="message ${msg.type}">
+                    ${label ? `<div class="message-label">${label}</div>` : ''}
+                    ${msg.text}
+                </div>`;
+            }).join('');
+
+            showScreen('history-detail-screen');
+        }
+
+        function goBack() {
+            showScreen('start-screen');
+        }
+
+        init();
+    </script>
+</body>
+</html>
