@@ -164,6 +164,19 @@
             cursor: pointer;
         }
 
+        .avatar-loading {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border: 3px solid var(--accent-primary);
+        }
+
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
@@ -810,7 +823,7 @@
                 id: 1,
                 name: "昵称：币圈陈总",
                 tag: "币圈大佬，只差你一个",
-                avatar: "币圈陈总.png",
+                avatar: "币圈陈总.jpg",
                 initialFavorability: 40,
                 intro: "我是做区块链的，圈里人都叫我'陈总'。目前手上管着几个亿的盘子，保时捷刚换了一辆新的。我不喜欢太物质的女生，但你得懂我的事业。跟我在一起，以后你就是老板娘。对了，方便的话可以先借我两万块周转一下吗？很快还你。",
                 opening: "你们约在星巴克见面。他迟到15分钟，进门时故意晃了晃手里的保时捷钥匙（可能是借的），然后坐下来第一句话就是：'我刚开完一个亿的会。'",
@@ -876,7 +889,7 @@
                 id: 2,
                 name: "昵称：等待你的我",
                 tag: "只是一个普普通通的优质青年",
-                avatar: "等待你的我.png",
+                avatar: "等待你的我.jpg",
                 initialFavorability: 40,
                 intro: "我今年35岁，在一家大型企业做管理（月薪8k）。很多人第一眼看到我，都说我像吴彦祖。我对另一半的要求不高，95后，本科以上，身高165+，父母最好有退休金。我不接受彩礼，那是陋习。上一段感情？我没有前任，因为我太优秀了，一般人配不上我。",
                 opening: "他比约定时间早到了半小时，坐在位置上反复整理自己的头发。看到你走过来，他微微皱眉，小声嘀咕了一句：'比照片差一点，但还行吧。'",
@@ -942,7 +955,7 @@
                 id: 3,
                 name: "昵称：成熟稳重懂生活",
                 tag: "年纪大=会疼人",
-                avatar: "成熟稳重懂生活.png",
+                avatar: "成熟稳重懂生活.jpg",
                 initialFavorability: 40,
                 intro: "我52岁，离异，带一个30岁的儿子。女人嘛，不需要太漂亮，但要懂事。我会熬鸡汤、修水管、给你发60秒的语音。前妻不懂得珍惜我，我希望你是一个知冷知热的人。婚后我们可以住我家，我妈可以帮忙带孩子。对了，我不喜欢太能花钱的女人。",
                 opening: "他带你去了一家他'常去'的沙县小吃。坐下后，他很自然地帮你把筷子掰开，用纸巾擦了擦桌子，然后说：'女人嘛，就该被照顾。'",
@@ -1008,7 +1021,7 @@
                 id: 4,
                 name: "昵称：听妈妈的话，别让她受伤",
                 tag: "我妈说…",
-                avatar: "听妈妈的话别让她受伤.png",
+                avatar: "听妈妈的话别让她受伤.jpg",
                 initialFavorability: 40,
                 intro: "我30岁，大厂程序员，年薪40万。我妈说我的工资卡应该由她保管，这样以后买房才够首付。我妈说女生不能太胖，不能太矮，要会做饭，特别是要会做红烧肉，因为那是我的最爱。我妈说婚后必须一起住，她可以帮我们带孩子。我妈说……对了，你妈会游泳吗？",
                 opening: "他全程戴着蓝牙耳机，你隐约听到那头有个中年女声在说话。他抱歉地笑笑：“我妈怕我紧张，给我打气呢。”",
@@ -1074,7 +1087,7 @@
                 id: 5,
                 name: "昵称：灵魂在流浪",
                 tag: "我的灵魂很高贵",
-                avatar: "灵魂在流浪.png",
+                avatar: "灵魂在流浪.jpg",
                 initialFavorability: 40,
                 intro: "我是一个诗人，也是一个行为艺术家。物质对我来说是枷锁，我追求的是灵魂的自由。我不用微信，因为那太浮躁了。如果你想找我，可以给我写信。我不在乎你有没有钱，但你必须能理解我的诗。对了，今天我忘带钱了，这杯咖啡你可以请我吗？",
                 opening: "他约你在一个免费的公园长椅见面。你到的时候，他正对着一棵树发呆，手里拿着一本翻到某一页的诗集。看到你，他幽幽地说：\"你迟到了三分钟，我差点写了一首诗。\"",
@@ -1140,7 +1153,7 @@
                 id: 6,
                 name: "昵称：猛男本男",
                 tag: "我练得很壮哦～嘿嘿",
-                avatar: "猛男本男.png",
+                avatar: "猛男本男.jpg",
                 initialFavorability: 50,
                 intro: "我26岁，健身教练，体脂率8%。每天我都发朋友圈，展示我的自律。你喜欢什么样的男生？壮一点的？嘿嘿。我觉得女生也要锻炼，你看起来有点虚，我可以带你练。我不喜欢太保守的女生，要放得开。嘿嘿，你懂我意思吗？",
                 opening: "他穿了一件紧身背心，肌肉线条一览无余。见面第一件事不是打招呼，而是抬起胳膊给你看他的肱二头肌：“练了三年，怎么样？”",
@@ -1206,7 +1219,7 @@
                 id: 7,
                 name: "昵称：代码敲得不咋样",
                 tag: "但我是个好人",
-                avatar: "代码敲得不咋样.png",
+                avatar: "代码敲得不咋样.jpg",
                 initialFavorability: 40,
                 intro: "我28岁，程序员，写代码的。不加班，但工资也不高。我会做饭，喜欢看老电影，有点社恐。我不修电脑，别问我。我平时就刷刷剧，写写代码，生活很简单。",
                 opening: "他点了两杯美式咖啡，递给过你一杯的时候，手指微微发抖。\"我不太会聊天，你……你别介意。\"他低头抿了一口咖啡，耳根有点红。",
@@ -1272,7 +1285,7 @@
                 id: 8,
                 name: "昵称：梗比人红",
                 tag: "你能get到我的梗吗",
-                avatar: "梗比人红.png",
+                avatar: "梗比人红.jpg",
                 initialFavorability: 20,
                 intro: "我28岁，业余脱口秀演员。虽然没上过开放麦，但我有天赋！我的人生座右铭是：只要我不尴尬，尴尬的就是别人。我收入不稳定，但开心最重要。我以后想开一个自己的脱口秀俱乐部。",
                 opening: "他坐下来第一句话就是：\"你比照片好看，是不是P图没加载完？\"然后他自己先笑起来了。",
@@ -1338,7 +1351,7 @@
                 id: 9,
                 name: "昵称：搬砖也要优雅",
                 tag: "踏实boy，在线征婚",
-                avatar: "搬砖也要优雅.png",
+                avatar: "搬砖也要优雅.jpg",
                 initialFavorability: 40,
                 intro: "我28岁，工地的测量员。不抽烟不喝酒，每个月能存一半工资。家里催婚催得紧，但我还是想找个聊得来的人。我没有什么浪漫细胞，但我可以帮你修水管、搬重物、打蟑螂。",
                 opening: "他坐下来后，从口袋里拿出一朵太阳花，递给你：\"给你，不是玫瑰，但这个好养。\"",
@@ -1435,7 +1448,7 @@
 
         function preloadImages() {
             CHARACTERS.forEach(char => {
-                if (char.avatar && char.avatar.endsWith('.png')) {
+                if (char.avatar && (char.avatar.endsWith('.png') || char.avatar.endsWith('.jpg'))) {
                     const img = new Image();
                     img.src = char.avatar;
                 }
@@ -1681,7 +1694,8 @@ ${document.getElementById('share-tagline').textContent}
 
         function renderAvatar(elementId, avatar) {
             const el = document.getElementById(elementId);
-            if (avatar && avatar.endsWith('.png')) {
+            if (avatar && (avatar.endsWith('.png') || avatar.endsWith('.jpg'))) {
+                el.innerHTML = '<div class="avatar-loading">加载中...</div>';
                 const img = new Image();
                 img.onload = function() {
                     el.innerHTML = `<img src="${avatar}" onclick="showAvatarModal('${avatar}')" alt="头像">`;
