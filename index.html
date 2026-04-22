@@ -1433,6 +1433,21 @@
             document.getElementById('people-count').textContent = getRandomStats().toLocaleString();
         }
 
+        function preloadImages() {
+            CHARACTERS.forEach(char => {
+                if (char.avatar && char.avatar.endsWith('.png')) {
+                    const img = new Image();
+                    img.src = char.avatar;
+                }
+            });
+            const qr = new Image();
+            qr.src = 'qrcode.png';
+        }
+
+        window.onload = function() {
+            preloadImages();
+        };
+
         function startGame() {
             currentCharacter = CHARACTERS[characterOrder[currentCharacterIndex]];
             currentDialogueIndex = 0;
@@ -1667,7 +1682,14 @@ ${document.getElementById('share-tagline').textContent}
         function renderAvatar(elementId, avatar) {
             const el = document.getElementById(elementId);
             if (avatar && avatar.endsWith('.png')) {
-                el.innerHTML = `<img src="${avatar}" onclick="showAvatarModal('${avatar}')" alt="头像">`;
+                const img = new Image();
+                img.onload = function() {
+                    el.innerHTML = `<img src="${avatar}" onclick="showAvatarModal('${avatar}')" alt="头像">`;
+                };
+                img.onerror = function() {
+                    el.textContent = '👤';
+                };
+                img.src = avatar;
             } else {
                 el.textContent = avatar;
             }
