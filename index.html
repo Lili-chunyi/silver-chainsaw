@@ -197,6 +197,29 @@
             transform: scale(1.05);
         }
 
+        .intro-btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .reroll-btn {
+            background: transparent;
+            border: 2px solid var(--accent-secondary);
+            color: var(--text-secondary);
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reroll-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -689,10 +712,12 @@
                 <div class="character-avatar" id="character-avatar">😐</div>
                 <h2 class="character-name" id="character-name">加载中...</h2>
                 <p class="character-tag" id="character-tag">标签</p>
-                <button class="intro-btn" onclick="showIntro()">点击查看对方的自我介绍</button>
+                <div class="intro-btn-row">
+                    <button class="intro-btn" onclick="showIntro()">点击查看对方的自我介绍</button>
+                    <button class="reroll-btn" onclick="rerollCharacter()">换一个</button>
+                </div>
             </div>
             <button class="main-btn" id="start-chat-btn" onclick="startChat()">开始对话</button>
-            <button class="secondary-btn" onclick="rerollCharacter()">换一个</button>
         </div>
 
         <div class="modal" id="intro-modal">
@@ -1246,7 +1271,7 @@
             {
                 id: 8,
                 name: "昵称：梗比人红",
-                tag: "段子手，在线征婚",
+                tag: "你能get到我的梗吗",
                 avatar: "梗比人红.png",
                 initialFavorability: 20,
                 intro: "我28岁，业余脱口秀演员。虽然没上过开放麦，但我有天赋！我的人生座右铭是：只要我不尴尬，尴尬的就是别人。我收入不稳定，但开心最重要。我以后想开一个自己的脱口秀俱乐部。",
